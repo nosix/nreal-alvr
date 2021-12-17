@@ -5,7 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/NRSDK/Demos/HelloMR.unity
     guid: dd74f1c9685ef48499229d4957b58000
+  - enabled: 1
+    path: Assets/Scenes/TextureTest.unity
+    guid: 4ad647c2579d643e781b5ab6629b49b6
   m_configObjects: {}
