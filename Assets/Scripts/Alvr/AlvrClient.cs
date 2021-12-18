@@ -1,33 +1,21 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Alvr
 {
-    internal delegate void DeviceDataProducer(byte dataKind);
-
-    [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code
-    [StructLayout(LayoutKind.Sequential)]
-    internal class DeviceSettings
-    {
-        public string name;
-        public int recommendedEyeWidth;
-        public int recommendedEyeHeight;
-        public float[] availableRefreshRates;
-        public int availableRefreshRatesLen;
-        public int preferredRefreshRate;
-    }
-
     public class AlvrClient : MonoBehaviour
     {
+        [SerializeField] private string deviceName;
+        [SerializeField] private int recommendedEyeWidth;
+        [SerializeField] private int recommendedEyeHeight;
+        [SerializeField] private float[] availableRefreshRates;
+        [SerializeField] private int preferredRefreshRate;
+
         private AndroidJavaObject _androidPlugInInstance;
 
         [DllImport("alvr_android")]
         private static extern IntPtr GetInitContextEventFunc();
-
-        [DllImport("alvr_android")]
-        private static extern void SetDeviceDataProducer(DeviceDataProducer producer);
 
         [DllImport("alvr_android")]
         private static extern void SetDeviceSettings(DeviceSettings settings);
@@ -36,6 +24,7 @@ namespace Alvr
         {
             InitializeAndroidPlugin();
             InitContext();
+            DeviceDataManager.Producer += OnDataRequested;
             _androidPlugInInstance?.Call("onAwake");
         }
 
@@ -56,6 +45,7 @@ namespace Alvr
 
         private void OnDestroy()
         {
+            DeviceDataManager.Producer -= OnDataRequested;
             _androidPlugInInstance?.Call("onDestroy");
             _androidPlugInInstance = null;
         }
@@ -66,24 +56,21 @@ namespace Alvr
             using var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             using var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
             _androidPlugInInstance = new AndroidJavaObject("io.github.alvr.android.lib.UnityPlugin", activity);
-            SetDeviceDataProducer(OnDataRequested);
         }
 
-        [AOT.MonoPInvokeCallbackAttribute(typeof(DeviceDataProducer))]
-        private static void OnDataRequested(byte dataKind)
+        private void OnDataRequested(byte dataKind)
         {
             switch (dataKind)
             {
                 case 1:
-                    var refreshRates = new float[] { 60 };
                     SetDeviceSettings(new DeviceSettings
                     {
-                        name = "Unity ALVR",
-                        recommendedEyeWidth = 1920,
-                        recommendedEyeHeight = 1080,
-                        availableRefreshRates = refreshRates,
-                        availableRefreshRatesLen = refreshRates.Length,
-                        preferredRefreshRate = 60
+                        name = deviceName,
+                        recommendedEyeWidth = recommendedEyeWidth,
+                        recommendedEyeHeight = recommendedEyeHeight,
+                        availableRefreshRates = availableRefreshRates,
+                        availableRefreshRatesLen = availableRefreshRates.Length,
+                        preferredRefreshRate = preferredRefreshRate
                     });
                     break;
             }

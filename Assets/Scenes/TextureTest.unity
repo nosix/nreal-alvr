@@ -614,6 +614,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be0aeee943b64c4e95f7b333a635a9cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  deviceName: Unity ALVR
+  recommendedEyeWidth: 1920
+  recommendedEyeHeight: 1080
+  availableRefreshRates:
+  - 60
+  preferredRefreshRate: 60
 --- !u!4 &1560322137
 Transform:
   m_ObjectHideFlags: 0
