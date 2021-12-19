@@ -17,14 +17,11 @@ namespace Alvr
         [DllImport("alvr_android")]
         private static extern IntPtr GetInitContextEventFunc();
 
-        [DllImport("alvr_android")]
-        private static extern void SetDeviceSettings(DeviceSettings settings);
-
         private void Awake()
         {
             InitializeAndroidPlugin();
             InitContext();
-            DeviceDataManager.Producer += OnDataRequested;
+            DeviceDataManager.DeviceSettingsProducer += GetDeviceSettings;
             _androidPlugInInstance?.Call("onAwake");
         }
 
@@ -45,7 +42,7 @@ namespace Alvr
 
         private void OnDestroy()
         {
-            DeviceDataManager.Producer -= OnDataRequested;
+            DeviceDataManager.DeviceSettingsProducer -= GetDeviceSettings;
             _androidPlugInInstance?.Call("onDestroy");
             _androidPlugInInstance = null;
         }
@@ -58,22 +55,18 @@ namespace Alvr
             _androidPlugInInstance = new AndroidJavaObject("io.github.alvr.android.lib.UnityPlugin", activity);
         }
 
-        private void OnDataRequested(byte dataKind)
+        private DeviceSettings GetDeviceSettings()
         {
-            switch (dataKind)
+            // TODO Set the DeviceSettings lifetime to static
+            return new DeviceSettings
             {
-                case 1:
-                    SetDeviceSettings(new DeviceSettings
-                    {
-                        name = deviceName,
-                        recommendedEyeWidth = recommendedEyeWidth,
-                        recommendedEyeHeight = recommendedEyeHeight,
-                        availableRefreshRates = availableRefreshRates,
-                        availableRefreshRatesLen = availableRefreshRates.Length,
-                        preferredRefreshRate = preferredRefreshRate
-                    });
-                    break;
-            }
+                name = deviceName,
+                recommendedEyeWidth = recommendedEyeWidth,
+                recommendedEyeHeight = recommendedEyeHeight,
+                availableRefreshRates = availableRefreshRates,
+                availableRefreshRatesLen = availableRefreshRates.Length,
+                preferredRefreshRate = preferredRefreshRate
+            };
         }
 
         private static void InitContext()

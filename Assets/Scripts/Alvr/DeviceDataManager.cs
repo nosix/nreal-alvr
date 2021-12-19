@@ -3,8 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace Alvr
 {
-    public delegate void DeviceDataProducer(byte dataKind);
-
     [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code
     [StructLayout(LayoutKind.Sequential)]
     public class DeviceSettings
@@ -17,22 +15,28 @@ namespace Alvr
         public int preferredRefreshRate;
     }
 
+    public delegate DeviceSettings DeviceSettingsProducerDelegate();
+
     public static class DeviceDataManager
     {
-        public static DeviceDataProducer Producer;
+        public static DeviceSettingsProducerDelegate DeviceSettingsProducer;
 
         static DeviceDataManager()
         {
-            SetDeviceDataProducer(OnDataRequested);
+            SetDeviceDataProducer(
+                GetDeviceSettings
+            );
         }
 
         [DllImport("alvr_android")]
-        private static extern void SetDeviceDataProducer(DeviceDataProducer producer);
+        private static extern void SetDeviceDataProducer(
+            DeviceSettingsProducerDelegate deviceSettingsProducer
+        );
 
-        [AOT.MonoPInvokeCallbackAttribute(typeof(DeviceDataProducer))]
-        public static void OnDataRequested(byte dataKind)
+        [AOT.MonoPInvokeCallbackAttribute(typeof(DeviceSettingsProducerDelegate))]
+        public static DeviceSettings GetDeviceSettings()
         {
-            Producer.Invoke(dataKind);
+            return DeviceSettingsProducer.Invoke();
         }
     }
 }
