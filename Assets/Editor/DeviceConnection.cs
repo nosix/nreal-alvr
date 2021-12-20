@@ -3,12 +3,11 @@ using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEditor;
-using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace Editor
 {
-    public class DeviceConnection : MonoBehaviour
+    public class DeviceConnection : EditorWindow
     {
         private const int Port = 5555;
         [CanBeNull] private static string _deviceIpAddress;
@@ -39,13 +38,11 @@ namespace Editor
             return process;
         }
 
-        private static async Task<string> GetDeviceIpAddress(bool refresh = false)
+        private static async Task<string> GetDeviceIpAddress()
         {
-            if (!refresh && _deviceIpAddress != null) return _deviceIpAddress;
-
             var command = string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                @"adb disconnect 1> /dev/null",　// To have only one device with usb connection
+                @"adb disconnect 1> /dev/null", // To have only one device with usb connection
                 @"adb shell ""ip -f inet -o addr show wlan0 | sed -e 's/^.*inet //' -e 's/\/.*$//'"""
             );
 
@@ -60,9 +57,7 @@ namespace Editor
 
             var ipAddress = await bashProcess.StandardOutput.ReadToEndAsync();
 
-            _deviceIpAddress = ipAddress.Trim();
-
-            return _deviceIpAddress;
+            return ipAddress.Trim();
         }
 
         private static async void Run(string command)
@@ -83,18 +78,18 @@ namespace Editor
         [MenuItem("NRSDK/ConnectDeviceAsRemote", false, 1)]
         private static async void ConnectDeviceAsRemote()
         {
-            var ipAddress = await GetDeviceIpAddress(true);
-            var command = string.Join(" && ",
+            _deviceIpAddress = await GetDeviceIpAddress();
+
+            Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
                 $@"adb tcpip {Port}",
-                $@"adb connect {ipAddress}:{Port}",
-                $@"scrcpy -s {ipAddress}:{Port} 2>&1"
-            );
-            Run(command);
+                $@"adb connect {_deviceIpAddress}:{Port}",
+                $@"scrcpy -s {_deviceIpAddress}:{Port} 2>&1"
+            ));
         }
 
         [MenuItem("NRSDK/Scrcpy", false, 1)]
-        private static async void Scrcpy()
+        private static void Scrcpy()
         {
             if (_deviceIpAddress == null)
             {
@@ -102,33 +97,43 @@ namespace Editor
                 return;
             }
 
-            var ipAddress = await GetDeviceIpAddress();
-            var command = string.Join(" && ",
+            Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                $@"scrcpy -s {ipAddress}:{Port} 2>&1"
-            );
-            Run(command);
+                $@"scrcpy -s {_deviceIpAddress}:{Port} 2>&1"
+            ));
         }
 
         [MenuItem("NRSDK/ShowDevices", false, 1)]
         private static void ShowDevices()
         {
-            var command = string.Join(" && ",
+            Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
                 @"adb devices"
-            );
-            Run(command);
+            ));
         }
 
         [MenuItem("NRSDK/RebootRemoteDevice", false, 1)]
-        private static async void RebootRemoteDevice()
+        private static void RebootRemoteDevice()
         {
-            var ipAddress = await GetDeviceIpAddress();
-            var command = string.Join(" && ",
+            if (_deviceIpAddress == null) return;
+
+            Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                $@"adb -s {ipAddress}:{Port} shell reboot"
-            );
-            Run(command);
+                $@"adb -s {_deviceIpAddress}:{Port} shell reboot"
+            ));
+
+            _deviceIpAddress = null;
+        }
+
+        [MenuItem("NRSDK/ShutdownRemoteDevice", false, 1)]
+        private static void ShutdownRemoteDevice()
+        {
+            if (_deviceIpAddress == null) return;
+
+            Run(string.Join(" && ",
+                $@"PATH={GetAdbPath()}:$PATH",
+                $@"adb -s {_deviceIpAddress}:{Port} shell reboot -p"
+            ));
 
             _deviceIpAddress = null;
         }
