@@ -137,5 +137,23 @@ namespace Editor
 
             _deviceIpAddress = null;
         }
+
+        [MenuItem("NRSDK/StartAppWithDeepProfile", false, 1)]
+        private static void StartAppWithDeepProfile()
+        {
+            if (_deviceIpAddress != null)
+            {
+                Debug.LogWarning("This command must be run over a USB connection.");
+            }
+            var bundleIdentifier = UnityEngine.Application.identifier;
+            Run(string.Join(" && ",
+                $@"PATH={GetAdbPath()}:$PATH",
+                "adb disconnect",
+                $@"adb shell am start -n {bundleIdentifier}/com.unity3d.player.UnityPlayerActivity -e 'unity' '-deepprofiling'",
+                "scrcpy 2>&1"
+            ));
+
+            _deviceIpAddress = null;
+        }
     }
 }
