@@ -3,24 +3,27 @@ using UnityEngine.UI;
 
 namespace Alvr
 {
-    [RequireComponent(typeof(RawImage))]
     public class AlvrStreamTexture : MonoBehaviour
     {
-        [SerializeField]
-        private AlvrClient alvrClient;
+        public int width = 1920;
+        public int height = 1080;
+
+        [SerializeField] private RawImage[] outputImages;
+        [SerializeField] private AlvrClient alvrClient;
 
         private void Start()
         {
-            Screen.orientation = ScreenOrientation.Landscape;
             alvrClient.AttachTexture(InitializeTexture2D());
         }
 
         private Texture2D InitializeTexture2D()
         {
-            var rawImage = GetComponent<RawImage>();
-            var rect = rawImage.rectTransform.rect;
-            var texture = CreateTexture2D((int)rect.width, (int)rect.height);
-            rawImage.texture = texture;
+            var texture = CreateTexture2D(width, height);
+            foreach (var rawImage in outputImages)
+            {
+                rawImage.rectTransform.sizeDelta = new Vector2(width, height);
+                rawImage.texture = texture;
+            }
             return texture;
         }
 
