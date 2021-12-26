@@ -12,7 +12,7 @@ namespace Alvr
         public int recommendedEyeHeight;
         public float[] availableRefreshRates;
         public int availableRefreshRatesLen;
-        public int preferredRefreshRate;
+        public float preferredRefreshRate;
     }
 
     [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code

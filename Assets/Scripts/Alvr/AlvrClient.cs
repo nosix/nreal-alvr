@@ -7,10 +7,11 @@ namespace Alvr
     public class AlvrClient : MonoBehaviour
     {
         [SerializeField] private string deviceName;
-        [SerializeField] private int recommendedEyeWidth;
-        [SerializeField] private int recommendedEyeHeight;
-        [SerializeField] private float[] availableRefreshRates;
-        [SerializeField] private int preferredRefreshRate;
+        [SerializeField] private int recommendedEyeWidth = 1920;
+        [SerializeField] private int recommendedEyeHeight = 1080;
+        [Range(0.1f, 1.0f)] [SerializeField] private float eyeSizeRatio = 1.0f;
+        [SerializeField] private float[] availableRefreshRates = {60f};
+        [SerializeField] private float preferredRefreshRate = 60f;
 
         private AndroidJavaObject _androidPlugInInstance;
 
@@ -61,8 +62,8 @@ namespace Alvr
             return new DeviceSettings
             {
                 name = deviceName,
-                recommendedEyeWidth = recommendedEyeWidth,
-                recommendedEyeHeight = recommendedEyeHeight,
+                recommendedEyeWidth = (int)(recommendedEyeWidth * eyeSizeRatio),
+                recommendedEyeHeight = (int)(recommendedEyeHeight * eyeSizeRatio),
                 availableRefreshRates = availableRefreshRates,
                 availableRefreshRatesLen = availableRefreshRates.Length,
                 preferredRefreshRate = preferredRefreshRate
