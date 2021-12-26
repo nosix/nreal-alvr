@@ -24,10 +24,10 @@ namespace Alvr
 
         public byte battery;
         public byte plugged;
-        public Rect l_eye_fov = new Rect();
-        public Rect r_eye_fov = new Rect();
-        public Quaternion head_pose_orientation = new Quaternion();
-        public Vector3 head_pose_position = new Vector3();
+        public Rect lEyeFov = new Rect();
+        public Rect rEyeFov = new Rect();
+        public Quaternion headPoseOrientation = new Quaternion();
+        public Vector3 headPosePosition = new Vector3();
     }
 
     [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code
