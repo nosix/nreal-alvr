@@ -22,8 +22,9 @@ namespace Alvr
 
         private Tracking GetTracking()
         {
+
             var headPosePosition = NRFrame.HeadPose.position;
-            var headPoseRotation = NRFrame.HeadPose.rotation;
+            var headPoseRotation = UnityEngine.Quaternion.Inverse(NRFrame.HeadPose.rotation);
             return new Tracking
             {
                 ipd = 0.068606f,
