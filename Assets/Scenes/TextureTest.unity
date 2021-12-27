@@ -251,9 +251,9 @@ MonoBehaviour:
   m_UVRect:
     serializedVersion: 2
     x: 0
-    y: 0
+    y: 1
     width: 1
-    height: 1
+    height: -1
 --- !u!222 &604198760
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -623,6 +623,7 @@ MonoBehaviour:
   deviceName: Unity ALVR
   recommendedEyeWidth: 1920
   recommendedEyeHeight: 1080
+  eyeSizeRatio: 1
   availableRefreshRates:
   - 60
   preferredRefreshRate: 60
