@@ -24,6 +24,11 @@ namespace Alvr
             alvrClient.AttachTexture(InitializeTexture2D());
         }
 
+        private void OnDestroy()
+        {
+            alvrClient.DetachTexture();
+        }
+
         private void UpdateToFullScreenSize()
         {
             var horizontal = Screen.width;

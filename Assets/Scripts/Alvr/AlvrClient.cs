@@ -33,6 +33,7 @@ namespace Alvr
 
         private void OnApplicationPause(bool pauseStatus)
         {
+            Debug.Log($"OnApplicationPause {pauseStatus}");
             _androidPlugInInstance?.Call("onApplicationPause", pauseStatus);
         }
 
@@ -74,6 +75,11 @@ namespace Alvr
                 (int)texture.GetNativeTexturePtr(),
                 texture.width, texture.height
             );
+        }
+
+        public void DetachTexture()
+        {
+            _androidPlugInInstance?.Call("detachTexture");
         }
     }
 }
