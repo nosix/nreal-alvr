@@ -33,7 +33,6 @@ namespace Alvr
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            Debug.Log($"OnApplicationPause {pauseStatus}");
             _androidPlugInInstance?.Call("onApplicationPause", pauseStatus);
         }
 
