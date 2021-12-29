@@ -42,6 +42,7 @@ namespace Editor
         {
             var command = string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
+                @"adb reconnect offline",
                 @"adb disconnect 1> /dev/null", // To have only one device with usb connection
                 @"adb shell ""ip -f inet -o addr show wlan0 | sed -e 's/^.*inet //' -e 's/\/.*$//'"""
             );
