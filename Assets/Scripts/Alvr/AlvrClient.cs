@@ -31,16 +31,6 @@ namespace Alvr
             _androidPlugInInstance?.Call("onAwake");
         }
 
-        private void OnEnable()
-        {
-            _androidPlugInInstance?.Call("onEnable");
-        }
-
-        private void OnDisable()
-        {
-            _androidPlugInInstance?.Call("onDisable");
-        }
-
         private void OnApplicationPause(bool pauseStatus)
         {
             _androidPlugInInstance?.Call("onApplicationPause", pauseStatus);
