@@ -274,6 +274,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fa42b5ba0464693822d16907b69a8c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fullScreen: 1
   width: 3840
   height: 1080
   outputImages:

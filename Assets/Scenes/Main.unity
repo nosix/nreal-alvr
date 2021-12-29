@@ -1500,6 +1500,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fa42b5ba0464693822d16907b69a8c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fullScreen: 0
   width: 3840
   height: 1080
   outputImages:
@@ -1537,6 +1538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbb7ebbd343f46298283210f36e5ccc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  alvrClient: {fileID: 644375757}
 --- !u!1 &653687979
 GameObject:
   m_ObjectHideFlags: 0
