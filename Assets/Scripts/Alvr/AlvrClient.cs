@@ -18,6 +18,8 @@ namespace Alvr
 
         private AndroidJavaObject _androidPlugInInstance;
 
+        private readonly DeviceSettings _deviceSettings = new DeviceSettings();
+
         [DllImport("alvr_android")]
         private static extern IntPtr GetInitContextEventFunc();
 
@@ -61,16 +63,13 @@ namespace Alvr
 
         private DeviceSettings GetDeviceSettings()
         {
-            // TODO Set the DeviceSettings lifetime to static
-            return new DeviceSettings
-            {
-                name = deviceName,
-                recommendedEyeWidth = EyeWidth,
-                recommendedEyeHeight = EyeHeight,
-                availableRefreshRates = availableRefreshRates,
-                availableRefreshRatesLen = availableRefreshRates.Length,
-                preferredRefreshRate = preferredRefreshRate
-            };
+            _deviceSettings.name = deviceName;
+            _deviceSettings.recommendedEyeWidth = EyeWidth;
+            _deviceSettings.recommendedEyeHeight = EyeHeight;
+            _deviceSettings.availableRefreshRates = availableRefreshRates;
+            _deviceSettings.availableRefreshRatesLen = availableRefreshRates.Length;
+            _deviceSettings.preferredRefreshRate = preferredRefreshRate;
+            return _deviceSettings;
         }
 
         private static void InitContext()
