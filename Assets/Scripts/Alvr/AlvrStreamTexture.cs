@@ -5,7 +5,7 @@ namespace Alvr
 {
     public class AlvrStreamTexture : MonoBehaviour
     {
-        public int width = 1920;
+        public int width = 3840;
         public int height = 1080;
 
         [SerializeField] private RawImage[] outputImages;

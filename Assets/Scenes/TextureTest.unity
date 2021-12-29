@@ -222,10 +222,10 @@ RectTransform:
   m_Father: {fileID: 1472805710}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 3840, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &604198759
 MonoBehaviour:
@@ -274,7 +274,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fa42b5ba0464693822d16907b69a8c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 1920
+  width: 3840
   height: 1080
   outputImages:
   - {fileID: 604198759}
@@ -329,8 +329,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 1.9
-  far clip plane: 2.1
+  near clip plane: 0.9
+  far clip plane: 1.1
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -559,7 +559,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 704240416}
-  m_PlaneDistance: 2
+  m_PlaneDistance: 1
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
