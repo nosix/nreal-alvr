@@ -80,5 +80,10 @@ namespace Alvr
         {
             _androidPlugInInstance?.Call("detachTexture");
         }
+
+        public void SetEventObserver(ClientEventObserver observer)
+        {
+            _androidPlugInInstance?.Call("setEventObserver", observer);
+        }
     }
 }
