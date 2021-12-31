@@ -3,7 +3,7 @@
 # Target server version
 
 - [ALVR (Nightly Build)](https://github.com/nosix/nreal-alvr/blob/main/alvr_server_windows.zip)
-  - It is not a binary distributed by the official ALVR.　Please do not contact the official ALVR for this binary.
+  - It is not a binary distributed by the official ALVR. Please do not contact the official ALVR for this binary.
   - I plan to support the next released version of the official ALVR.
 
 # Requirements for build
