@@ -15,5 +15,10 @@
   - dependency is written in Packages/manifest.json
 - ALVR Android library (Experimental)
   - [ALVR in my repository](https://github.com/nosix/ALVR/tree/android-lib-no-ovr)
+    - It can be used by publishing to local maven repository in advance.
+      ```
+      cd alvr/experiments/android-lib-no-ovr
+      ./gradlew publishToMavenLocal
+      ```
   - dependency is written in Assets/Plugins/Android/mainTemplate.gradle
   - Please do not contact the official ALVR for this library. Currently, I am adding it personally.
