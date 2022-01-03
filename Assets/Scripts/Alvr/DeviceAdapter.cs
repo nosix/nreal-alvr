@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using UniRx;
 
 namespace Alvr
 {
@@ -68,8 +69,16 @@ namespace Alvr
         public static GetTrackingDelegate GetTrackingDelegate;
         public static OnRenderedDelegate OnRenderedDelegate;
 
+        private static readonly Subject<long> OnRenderedSubject = new Subject<long>();
+
         static DeviceAdapter()
         {
+            OnRenderedSubject
+                .ObserveOnMainThread()
+                .Subscribe(frameIndex =>
+                {
+                    OnRenderedDelegate?.Invoke(frameIndex);
+                });
             SetDeviceAdapter(
                 GetDeviceSettings,
                 GetTracking,
@@ -87,19 +96,19 @@ namespace Alvr
         [AOT.MonoPInvokeCallbackAttribute(typeof(GetDeviceSettingsDelegate))]
         public static DeviceSettings GetDeviceSettings()
         {
-            return GetDeviceSettingsDelegate.Invoke();
+            return GetDeviceSettingsDelegate?.Invoke();
         }
 
         [AOT.MonoPInvokeCallbackAttribute(typeof(GetTrackingDelegate))]
         public static Tracking GetTracking(long frameIndex)
         {
-            return GetTrackingDelegate.Invoke(frameIndex);
+            return GetTrackingDelegate?.Invoke(frameIndex);
         }
 
         [AOT.MonoPInvokeCallbackAttribute(typeof(OnRenderedDelegate))]
         public static void OnRendered(long frameIndex)
         {
-            OnRenderedDelegate.Invoke(frameIndex);
+            OnRenderedSubject.OnNext(frameIndex);
         }
     }
 }
