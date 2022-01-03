@@ -1,15 +1,20 @@
 using NRKernal;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Alvr
 {
     public class TrackingNreal : MonoBehaviour
     {
         [SerializeField] private AlvrClient alvrClient;
+        [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
         private const float DiagonalFovAngle = 52f;
 
         private readonly Tracking _tracking = new Tracking();
+        private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
+
+        private static readonly UnityEngine.Vector3 RotateDirection = new UnityEngine.Vector3(-1f, -1f, 1f);
 
         private static Rect GetEyeFov(float diagonalFovAngle, float width, float height)
         {
@@ -34,8 +39,7 @@ namespace Alvr
         private Tracking GetTracking(long frameIndex)
         {
             var eyeFov = GetEyeFov(DiagonalFovAngle, alvrClient.EyeWidth, alvrClient.EyeHeight);
-            var headPosePosition = NRFrame.HeadPose.position;
-            var headPoseRotation = UnityEngine.Quaternion.Inverse(NRFrame.HeadPose.rotation);
+            var headPose = GetHeadPose();
             _tracking.ipd = 0.068606f;
             _tracking.battery = 100;
             _tracking.plugged = 1;
@@ -43,23 +47,36 @@ namespace Alvr
             _tracking.rEyeFov = eyeFov;
             _tracking.headPosePosition = new Vector3
             {
-                x = headPosePosition.x,
-                y = headPosePosition.y,
-                z = headPosePosition.z
+                x = headPose.position.x,
+                y = headPose.position.y,
+                z = headPose.position.z
             };
             _tracking.headPoseOrientation = new Quaternion
             {
-                x = headPoseRotation.x,
-                y = headPoseRotation.y,
-                z = headPoseRotation.z,
-                w = headPoseRotation.w
+                x = headPose.rotation.x,
+                y = headPose.rotation.y,
+                z = headPose.rotation.z,
+                w = headPose.rotation.w
             };
+            _headPoseHistory.Add(frameIndex, headPose);
             return _tracking;
+        }
+
+        private static Pose GetHeadPose()
+        {
+            var headPosePosition = NRFrame.HeadPose.position;
+            var headPoseRotation = UnityEngine.Quaternion.Euler(
+                UnityEngine.Vector3.Scale(NRFrame.HeadPose.rotation.eulerAngles, RotateDirection)
+            );
+            return new Pose(headPosePosition, headPoseRotation);
         }
 
         private void OnRendered(long frameIndex)
         {
-            // TODO implement
+            if (_headPoseHistory.Has(frameIndex))
+            {
+                onRendered.Invoke(_headPoseHistory.Get(frameIndex), GetHeadPose());
+            }
         }
 
         private void OnDestroy()
