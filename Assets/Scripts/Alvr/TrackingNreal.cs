@@ -27,10 +27,11 @@ namespace Alvr
 
         private void Awake()
         {
-            DeviceDataManager.TrackingProducer += GetTracking;
+            DeviceAdapter.GetTrackingDelegate += GetTracking;
+            DeviceAdapter.OnRenderedDelegate += OnRendered;
         }
 
-        private Tracking GetTracking()
+        private Tracking GetTracking(long frameIndex)
         {
             var eyeFov = GetEyeFov(DiagonalFovAngle, alvrClient.EyeWidth, alvrClient.EyeHeight);
             var headPosePosition = NRFrame.HeadPose.position;
@@ -56,9 +57,15 @@ namespace Alvr
             return _tracking;
         }
 
+        private void OnRendered(long frameIndex)
+        {
+            // TODO implement
+        }
+
         private void OnDestroy()
         {
-            DeviceDataManager.TrackingProducer += GetTracking;
+            DeviceAdapter.GetTrackingDelegate -= GetTracking;
+            DeviceAdapter.OnRenderedDelegate -= OnRendered;
         }
     }
 }

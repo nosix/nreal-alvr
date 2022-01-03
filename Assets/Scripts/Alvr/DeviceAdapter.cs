@@ -58,39 +58,48 @@ namespace Alvr
         public float z;
     }
 
-    public delegate DeviceSettings DeviceSettingsProducerDelegate();
+    public delegate DeviceSettings GetDeviceSettingsDelegate();
+    public delegate Tracking GetTrackingDelegate(long frameIndex);
+    public delegate void OnRenderedDelegate(long frameIndex);
 
-    public delegate Tracking TrackingProducerDelegate();
-
-    public static class DeviceDataManager
+    public static class DeviceAdapter
     {
-        public static DeviceSettingsProducerDelegate DeviceSettingsProducer;
-        public static TrackingProducerDelegate TrackingProducer;
+        public static GetDeviceSettingsDelegate GetDeviceSettingsDelegate;
+        public static GetTrackingDelegate GetTrackingDelegate;
+        public static OnRenderedDelegate OnRenderedDelegate;
 
-        static DeviceDataManager()
+        static DeviceAdapter()
         {
-            SetDeviceDataProducer(
+            SetDeviceAdapter(
                 GetDeviceSettings,
-                GetTracking
+                GetTracking,
+                OnRendered
             );
         }
 
         [DllImport("alvr_android")]
-        private static extern void SetDeviceDataProducer(
-            DeviceSettingsProducerDelegate deviceSettingsProducer,
-            TrackingProducerDelegate trackingProducer
+        private static extern void SetDeviceAdapter(
+            GetDeviceSettingsDelegate getDeviceSettings,
+            GetTrackingDelegate getTracking,
+            OnRenderedDelegate onRendered
         );
 
-        [AOT.MonoPInvokeCallbackAttribute(typeof(DeviceSettingsProducerDelegate))]
+        [AOT.MonoPInvokeCallbackAttribute(typeof(GetDeviceSettingsDelegate))]
         public static DeviceSettings GetDeviceSettings()
         {
-            return DeviceSettingsProducer.Invoke();
+            return GetDeviceSettingsDelegate.Invoke();
         }
 
-        [AOT.MonoPInvokeCallbackAttribute(typeof(TrackingProducerDelegate))]
-        public static Tracking GetTracking()
+        [AOT.MonoPInvokeCallbackAttribute(typeof(GetTrackingDelegate))]
+        public static Tracking GetTracking(long frameIndex)
         {
-            return TrackingProducer.Invoke();
+            return GetTrackingDelegate.Invoke(frameIndex);
+        }
+
+        [AOT.MonoPInvokeCallbackAttribute(typeof(OnRenderedDelegate))]
+        public static void OnRendered(long frameIndex)
+        {
+            OnRenderedDelegate.Invoke(frameIndex);
         }
     }
 }

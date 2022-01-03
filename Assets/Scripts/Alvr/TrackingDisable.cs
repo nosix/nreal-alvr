@@ -8,17 +8,23 @@ namespace Alvr
 
         private void Awake()
         {
-            DeviceDataManager.TrackingProducer += GetTracking;
+            DeviceAdapter.GetTrackingDelegate += GetTracking;
+            DeviceAdapter.OnRenderedDelegate += OnRendered;
         }
 
-        private Tracking GetTracking()
+        private Tracking GetTracking(long frameIndex)
         {
             return _tracking;
         }
 
+        private static void OnRendered(long frameIndex)
+        {
+        }
+
         private void OnDestroy()
         {
-            DeviceDataManager.TrackingProducer -= GetTracking;
+            DeviceAdapter.GetTrackingDelegate -= GetTracking;
+            DeviceAdapter.OnRenderedDelegate -= OnRendered;
         }
     }
 }

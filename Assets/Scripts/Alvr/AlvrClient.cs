@@ -27,7 +27,7 @@ namespace Alvr
         {
             InitializeAndroidPlugin();
             InitContext();
-            DeviceDataManager.DeviceSettingsProducer += GetDeviceSettings;
+            DeviceAdapter.GetDeviceSettingsDelegate += GetDeviceSettings;
             _androidPlugInInstance?.Call("onAwake");
         }
 
@@ -38,7 +38,7 @@ namespace Alvr
 
         private void OnDestroy()
         {
-            DeviceDataManager.DeviceSettingsProducer -= GetDeviceSettings;
+            DeviceAdapter.GetDeviceSettingsDelegate -= GetDeviceSettings;
             _androidPlugInInstance?.Call("onDestroy");
             _androidPlugInInstance = null;
         }
