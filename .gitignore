@@ -150,7 +150,18 @@ sysinfo.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/unity,rider
 
-Assets/NRSDK
-Assets/NRSDK.meta
-Assets/Plugins/UniRx
-Assets/Plugins/UniRx.meta
+[Aa]ssets/*
+[Aa]ssets/*.meta
+
+![Aa]ssets/Editor
+![Aa]ssets/Editor.meta
+![Aa]ssets/Materials
+![Aa]ssets/Materials.meta
+![Aa]ssets/Plugins
+![Aa]ssets/Plugins.meta
+![Aa]ssets/Scenes
+![Aa]ssets/Scenes.meta
+![Aa]ssets/Scripts
+![Aa]ssets/Scripts.meta
+![Aa]ssets/Settings
+![Aa]ssets/Settings.meta
