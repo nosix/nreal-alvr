@@ -9,6 +9,8 @@ namespace Alvr
         [SerializeField] private AlvrClient alvrClient;
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
+        [SerializeField] private float eyeHeight = 1.55f;
+
         private const float DiagonalFovAngle = 52f;
 
         private readonly Tracking _tracking = new Tracking();
@@ -48,7 +50,7 @@ namespace Alvr
             _tracking.headPosePosition = new Vector3
             {
                 x = headPose.position.x,
-                y = headPose.position.y,
+                y = headPose.position.y + eyeHeight,
                 z = headPose.position.z
             };
             _tracking.headPoseOrientation = new Quaternion
