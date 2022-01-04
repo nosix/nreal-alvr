@@ -132,11 +132,13 @@ namespace Editor
         [MenuItem("NRSDK/ShutdownRemoteDevice", false, 1)]
         private static void ShutdownRemoteDevice()
         {
-            if (_deviceIpAddress == null) return;
+            var shutdownCommand = _deviceIpAddress == null
+                ? @"adb shell reboot -p"
+                : $@"adb -s {_deviceIpAddress}:{Port} shell reboot -p";
 
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                $@"adb -s {_deviceIpAddress}:{Port} shell reboot -p"
+                shutdownCommand
             ));
 
             _deviceIpAddress = null;
