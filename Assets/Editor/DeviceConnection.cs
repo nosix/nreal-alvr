@@ -80,6 +80,7 @@ namespace Editor
         private static async void ConnectDeviceAsRemote()
         {
             _deviceIpAddress = await GetDeviceIpAddress();
+            Debug.Log($"Cache IP address: {_deviceIpAddress}");
 
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
