@@ -42,7 +42,7 @@ namespace Editor
         {
             var command = string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                @"adb reconnect offline",
+                @"adb reconnect offline 1> /dev/null",
                 @"adb disconnect 1> /dev/null", // To have only one device with usb connection
                 @"adb shell ""ip -f inet -o addr show wlan0 | sed -e 's/^.*inet //' -e 's/\/.*$//'"""
             );
@@ -116,11 +116,13 @@ namespace Editor
         [MenuItem("NRSDK/RebootRemoteDevice", false, 1)]
         private static void RebootRemoteDevice()
         {
-            if (_deviceIpAddress == null) return;
+            var rebootCommand = _deviceIpAddress == null
+                ? @"adb shell reboot"
+                : $@"adb -s {_deviceIpAddress}:{Port} shell reboot";
 
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                $@"adb -s {_deviceIpAddress}:{Port} shell reboot"
+                rebootCommand
             ));
 
             _deviceIpAddress = null;
@@ -146,6 +148,7 @@ namespace Editor
             {
                 Debug.LogWarning("This command must be run over a USB connection.");
             }
+
             var bundleIdentifier = UnityEngine.Application.identifier;
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
