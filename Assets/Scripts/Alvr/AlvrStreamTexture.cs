@@ -5,14 +5,15 @@ namespace Alvr
 {
     public class AlvrStreamTexture : MonoBehaviour
     {
-        [Tooltip("'width' and 'height' are changed to Screen size.")]
-        public bool fullScreen;
+        [SerializeField] private AlvrClient alvrClient;
 
-        public int width = 3840;
-        public int height = 1080;
+        [Tooltip("'width' and 'height' are changed to Screen size.")]
+        [SerializeField] private bool fullScreen;
+
+        [SerializeField] private int width = 3840;
+        [SerializeField] private int height = 1080;
 
         [SerializeField] private RawImage[] outputImages;
-        [SerializeField] private AlvrClient alvrClient;
 
         private void Awake()
         {

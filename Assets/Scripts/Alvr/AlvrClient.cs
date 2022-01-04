@@ -10,8 +10,8 @@ namespace Alvr
         [SerializeField] private int recommendedEyeWidth = 1920;
         [SerializeField] private int recommendedEyeHeight = 1080;
         [Range(0.1f, 1.0f)] [SerializeField] private float eyeSizeRatio = 1.0f;
-        [SerializeField] private float[] availableRefreshRates = { 60f };
         [SerializeField] private float preferredRefreshRate = 60f;
+        [SerializeField] private float[] availableRefreshRates = { 60f };
 
         public int EyeWidth => (int) (recommendedEyeWidth * eyeSizeRatio);
         public int EyeHeight => (int) (recommendedEyeHeight * eyeSizeRatio);

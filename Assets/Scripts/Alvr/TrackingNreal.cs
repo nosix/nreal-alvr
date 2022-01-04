@@ -7,9 +7,8 @@ namespace Alvr
     public class TrackingNreal : MonoBehaviour
     {
         [SerializeField] private AlvrClient alvrClient;
-        [SerializeField] private UnityEvent<Pose, Pose> onRendered;
-
         [SerializeField] private float eyeHeight = 1.55f;
+        [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
         private const float DiagonalFovAngle = 52f;
 
