@@ -61,6 +61,11 @@ namespace Editor
             return ipAddress.Trim();
         }
 
+        private static string GetOption()
+        {
+            return _deviceIpAddress == null ? "" : $@" -s {_deviceIpAddress}:{Port}";
+        }
+
         private static async void Run(string command)
         {
             using var bashProcess = StartBashProcess();
@@ -93,15 +98,9 @@ namespace Editor
         [MenuItem("NRSDK/Scrcpy", false, 1)]
         private static void Scrcpy()
         {
-            if (_deviceIpAddress == null)
-            {
-                Debug.LogError("Please execute ConnectDeviceAsRemote first");
-                return;
-            }
-
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                $@"scrcpy -s {_deviceIpAddress}:{Port} 2>&1"
+                $@"scrcpy{GetOption()} 2>&1"
             ));
         }
 
@@ -110,6 +109,7 @@ namespace Editor
         {
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
+                @"adb reconnect offline",
                 @"adb devices"
             ));
         }
@@ -117,13 +117,9 @@ namespace Editor
         [MenuItem("NRSDK/RebootRemoteDevice", false, 1)]
         private static void RebootRemoteDevice()
         {
-            var rebootCommand = _deviceIpAddress == null
-                ? @"adb shell reboot"
-                : $@"adb -s {_deviceIpAddress}:{Port} shell reboot";
-
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                rebootCommand
+                $@"adb{GetOption()} shell reboot"
             ));
 
             _deviceIpAddress = null;
@@ -132,13 +128,9 @@ namespace Editor
         [MenuItem("NRSDK/ShutdownRemoteDevice", false, 1)]
         private static void ShutdownRemoteDevice()
         {
-            var shutdownCommand = _deviceIpAddress == null
-                ? @"adb shell reboot -p"
-                : $@"adb -s {_deviceIpAddress}:{Port} shell reboot -p";
-
             Run(string.Join(" && ",
                 $@"PATH={GetAdbPath()}:$PATH",
-                shutdownCommand
+                $@"adb{GetOption()} shell reboot -p"
             ));
 
             _deviceIpAddress = null;
