@@ -949,13 +949,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fa42b5ba0464693822d16907b69a8c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  alvrClient: {fileID: 644375757}
   fullScreen: 0
   width: 3840
   height: 1080
   outputImages:
   - {fileID: 293824816}
   - {fileID: 1650608382}
-  alvrClient: {fileID: 644375757}
 --- !u!114 &644375757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -972,9 +972,9 @@ MonoBehaviour:
   recommendedEyeWidth: 1920
   recommendedEyeHeight: 1080
   eyeSizeRatio: 1
+  preferredRefreshRate: 60
   availableRefreshRates:
   - 60
-  preferredRefreshRate: 60
 --- !u!114 &644375758
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -988,6 +988,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alvrClient: {fileID: 644375757}
+  eyeHeight: 1.55
   onRendered:
     m_PersistentCalls:
       m_Calls:
@@ -1003,7 +1004,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  eyeHeight: 1.55
 --- !u!114 &644375759
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1151,6 +1151,7 @@ GameObject:
   - component: {fileID: 739769384}
   - component: {fileID: 739769386}
   - component: {fileID: 739769387}
+  - component: {fileID: 739769388}
   m_Layer: 0
   m_Name: HandTracking
   m_TagString: Untagged
@@ -1217,6 +1218,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchor: {fileID: 628796551}
+--- !u!114 &739769388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 739769383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfcaf5df7c454d90a122b65701f6a05c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  thresholdDistanceEnable2DInput: 0.03
+  thresholdAngleEnable2DInput: 25
+  thresholdAngleFor2DInputPress: 30
+  thresholdAngleForTrigger: 45
+  thresholdAngleForGrip: 45
+  thresholdAngleForButton: 20
+  thresholdAngleForSystem: 45
+  thresholdAngleForTwist: 40
+  thresholdAngleForModeChange: 90
+  averageWindowsSamples: 120
+  angleAverageWindowMs: 2000
+  twistAngleAverageWindowMs: 1000
+  buttonModeNum: 2
 --- !u!1 &767705132
 GameObject:
   m_ObjectHideFlags: 0
