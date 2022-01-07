@@ -24,26 +24,17 @@ namespace Alvr
         [SerializeField] private float thresholdAngleForTrigger = 60f;
         [SerializeField] private float maxAngleForGrip = 90f;
         [SerializeField] private float thresholdAngleForGrip = 50f;
-        [SerializeField] private float thresholdAngleForButton = 20f;
-        [SerializeField] private float thresholdAngleForSystem = 45f;
         [SerializeField] private float thresholdAngleForTwist = 40f;
-        [SerializeField] private float thresholdAngleForModeChange = 90f;
-        [SerializeField] private float palmAngleAverageWindowMs = 3000f;
         [SerializeField] private float twistAngleAverageWindowMs = 1000f;
         [SerializeField] private int averageWindowSamples = 120;
-        [SerializeField] private int buttonModeNum = 3;
 
         private static readonly UnityEngine.Quaternion RotateAroundY =
             UnityEngine.Quaternion.AngleAxis(90f, UnityEngine.Vector3.up);
 
         private IntervalTimeRecorder _interval;
-        private MovingAverage _palmAngleX;
         private MovingAverage _palmAngleY;
         private float _angleRangeForTrigger;
         private float _angleRangeForGrip;
-
-        private int _buttonMode;
-        private bool _changeButtonMode;
 
         private UnityEngine.Vector3? _lOriginOf2DInput;
 
@@ -62,10 +53,6 @@ namespace Alvr
         private void OnEnable()
         {
             _interval = new IntervalTimeRecorder(60);
-            _palmAngleX = new MovingAverage(
-                averageWindowSamples,
-                new DataSampleFilter(_interval, palmAngleAverageWindowMs, averageWindowSamples)
-            );
             _palmAngleY = new MovingAverage(
                 averageWindowSamples,
                 new DataSampleFilter(_interval, twistAngleAverageWindowMs, averageWindowSamples)
@@ -89,13 +76,6 @@ namespace Alvr
             var deltaAngleY = AbsDeltaAngle(palmAngleYAverage, palmAngleY);
             _palmAngleY.Next(palmAngleY);
 
-            // Debug.Log($"{(int)deltaAngleY} {_changeButtonMode}");
-
-            if (deltaAngleY > thresholdAngleForModeChange)
-            {
-                _changeButtonMode = true;
-            }
-
             // Ignore the input because it is easy to detect falsely while twisting
             if (deltaAngleY > thresholdAngleForTwist) return null;
 
@@ -104,35 +84,8 @@ namespace Alvr
             var indexMiddle = state.GetJointPose(HandJointID.IndexMiddle);
             var middleProximal = state.GetJointPose(HandJointID.MiddleProximal);
             var middleMiddle = state.GetJointPose(HandJointID.MiddleMiddle);
-            var ringProximal = state.GetJointPose(HandJointID.RingProximal);
-            var ringMiddle = state.GetJointPose(HandJointID.RingMiddle);
 
             var controllerState = new HandControllerState();
-
-            if (_changeButtonMode)
-            {
-                _changeButtonMode = false;
-                _buttonMode = (_buttonMode + 1) % buttonModeNum;
-            }
-
-            controllerState.buttonMode = _buttonMode;
-
-            // Button A/X, B/Y and 2D Input Press
-            var palmAngleX = palm.rotation.eulerAngles.x; // about 0..90
-            palmAngleX = (palmAngleX + 180f) % 360f; // 0 and 360 to be the same
-            var palmAngleXAverage = _palmAngleX.Average;
-            var deltaAngleX = Mathf.DeltaAngle(palmAngleXAverage, palmAngleX);
-
-            if (-deltaAngleX > thresholdAngleForButton)
-            {
-                controllerState.button = true;
-            }
-            else
-            {
-                _palmAngleX.Next(palmAngleX);
-            }
-
-            // Debug.Log($"{controllerState.buttonMode} {controllerState.button} {(int)deltaAngleX} {(int)palmAngleX} {(int)palmAngleXAverage} {(int)palmAngleYAverage}");
 
             // Trigger
             var indexAngle = UnityEngine.Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
@@ -184,17 +137,6 @@ namespace Alvr
             {
                 originOf2DInput = null;
             }
-
-            // Special buttons such as Menu and System
-            var ringAngle = UnityEngine.Quaternion.Angle(ringProximal.rotation, ringMiddle.rotation);
-            var bendRing = ringAngle > thresholdAngleForSystem;
-            if (state.currentGesture == HandGesture.Victory &&
-                bendRing && controllerState.grip == 0f && controllerState.trigger == 0f)
-            {
-                controllerState.system = true;
-            }
-
-            // Debug.Log($"{controllerState.system} {controllerState.buttonMode} {controllerState.button} {controllerState.trigger > 0f} {controllerState.grip > 0f} {controllerState.input2DPosition}");
 
             return controllerState;
         }
