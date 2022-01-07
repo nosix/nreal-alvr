@@ -1230,9 +1230,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfcaf5df7c454d90a122b65701f6a05c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  headAnchor: {fileID: 628796551}
+  maxDistance2DInput: 0.1
   thresholdDistanceEnable2DInput: 0.03
   thresholdAngleEnable2DInput: 25
-  thresholdAngleFor2DInputPress: 30
   maxAngleForTrigger: 90
   thresholdAngleForTrigger: 60
   maxAngleForGrip: 90

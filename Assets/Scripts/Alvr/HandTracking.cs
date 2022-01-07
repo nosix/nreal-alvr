@@ -15,6 +15,9 @@ namespace Alvr
 
     public class HandTracking : MonoBehaviour
     {
+        [SerializeField] private Transform headAnchor;
+
+        [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceEnable2DInput = 0.03f;
         [SerializeField] private float thresholdAngleEnable2DInput = 25f;
         [SerializeField] private float maxAngleForTrigger = 90f;
@@ -42,7 +45,7 @@ namespace Alvr
         private int _buttonMode;
         private bool _changeButtonMode;
 
-        private Vector2? _lOriginOf2DInput;
+        private UnityEngine.Vector3? _lOriginOf2DInput;
 
         private static float AbsDeltaAngle(float angle1, float angle2)
         {
@@ -64,7 +67,7 @@ namespace Alvr
             _angleRangeForGrip = maxAngleForGrip - thresholdAngleForGrip;
         }
 
-        private HandControllerState? ScanHandState(HandState state, ref Vector2? originOf2DInput)
+        private HandControllerState? ScanHandState(HandState state, ref UnityEngine.Vector3? originOf2DInput)
         {
             _interval.NextTick();
 
@@ -89,9 +92,7 @@ namespace Alvr
             // Ignore the input because it is easy to detect falsely while twisting
             if (deltaAngleY > thresholdAngleForTwist) return null;
 
-            var thumbMetacarpal = state.GetJointPose(HandJointID.ThumbMetacarpal);
             var thumbDistal = state.GetJointPose(HandJointID.ThumbDistal);
-            var thumbTip = state.GetJointPose(HandJointID.ThumbTip);
             var indexProximal = state.GetJointPose(HandJointID.IndexProximal);
             var indexMiddle = state.GetJointPose(HandJointID.IndexMiddle);
             var middleProximal = state.GetJointPose(HandJointID.MiddleProximal);
@@ -165,7 +166,11 @@ namespace Alvr
                 }
                 else
                 {
-                    controllerState.input2DPosition = palm.position - originOf2DInput;
+                    var moved = headAnchor.rotation * (palm.position - (UnityEngine.Vector3)originOf2DInput);
+                    controllerState.input2DPosition = new Vector2(
+                        moved.x > maxDistance2DInput ? 1f : moved.x / maxDistance2DInput,
+                        moved.y > maxDistance2DInput ? 1f : moved.y / maxDistance2DInput
+                    );
                 }
             }
             else
