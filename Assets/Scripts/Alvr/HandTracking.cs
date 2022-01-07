@@ -194,9 +194,19 @@ namespace Alvr
                 controllerState.system = true;
             }
 
-            Debug.Log($"{controllerState.system} {controllerState.buttonMode} {controllerState.button} {controllerState.trigger > 0f} {controllerState.grip > 0f} {controllerState.input2DPosition}");
+            // Debug.Log($"{controllerState.system} {controllerState.buttonMode} {controllerState.button} {controllerState.trigger > 0f} {controllerState.grip > 0f} {controllerState.input2DPosition}");
 
             return controllerState;
+        }
+
+        public void PressButton(int buttonId)
+        {
+            Debug.Log($"Press {buttonId}");
+        }
+
+        public void ReleaseButton(int buttonId)
+        {
+            Debug.Log($"Release {buttonId}");
         }
 
         private void Update()
