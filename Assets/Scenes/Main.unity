@@ -1233,16 +1233,18 @@ MonoBehaviour:
   thresholdDistanceEnable2DInput: 0.03
   thresholdAngleEnable2DInput: 25
   thresholdAngleFor2DInputPress: 30
-  thresholdAngleForTrigger: 45
-  thresholdAngleForGrip: 45
+  maxAngleForTrigger: 90
+  thresholdAngleForTrigger: 60
+  maxAngleForGrip: 90
+  thresholdAngleForGrip: 50
   thresholdAngleForButton: 20
   thresholdAngleForSystem: 45
   thresholdAngleForTwist: 40
   thresholdAngleForModeChange: 90
-  averageWindowsSamples: 120
-  angleAverageWindowMs: 2000
+  palmAngleAverageWindowMs: 3000
   twistAngleAverageWindowMs: 1000
-  buttonModeNum: 2
+  averageWindowSamples: 120
+  buttonModeNum: 3
 --- !u!1 &767705132
 GameObject:
   m_ObjectHideFlags: 0

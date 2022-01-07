@@ -6,9 +6,8 @@ namespace Alvr
     struct HandControllerState
     {
         public Vector2? input2DPosition;
-        public bool input2DPress;
-        public bool trigger;
-        public bool grip;
+        public float trigger;
+        public float grip;
         public bool system;
         public bool button;
         public int buttonMode;
@@ -18,9 +17,10 @@ namespace Alvr
     {
         [SerializeField] private float thresholdDistanceEnable2DInput = 0.03f;
         [SerializeField] private float thresholdAngleEnable2DInput = 25f;
-        [SerializeField] private float thresholdAngleFor2DInputPress = 30f;
-        [SerializeField] private float thresholdAngleForTrigger = 45f;
-        [SerializeField] private float thresholdAngleForGrip = 45f;
+        [SerializeField] private float maxAngleForTrigger = 90f;
+        [SerializeField] private float thresholdAngleForTrigger = 60f;
+        [SerializeField] private float maxAngleForGrip = 90f;
+        [SerializeField] private float thresholdAngleForGrip = 50f;
         [SerializeField] private float thresholdAngleForButton = 20f;
         [SerializeField] private float thresholdAngleForSystem = 45f;
         [SerializeField] private float thresholdAngleForTwist = 40f;
@@ -28,7 +28,7 @@ namespace Alvr
         [SerializeField] private float palmAngleAverageWindowMs = 3000f;
         [SerializeField] private float twistAngleAverageWindowMs = 1000f;
         [SerializeField] private int averageWindowSamples = 120;
-        [SerializeField] private int buttonModeNum = 2;
+        [SerializeField] private int buttonModeNum = 3;
 
         private static readonly UnityEngine.Quaternion RotateAroundY =
             UnityEngine.Quaternion.AngleAxis(90f, UnityEngine.Vector3.up);
@@ -36,6 +36,8 @@ namespace Alvr
         private IntervalTimeRecorder _interval;
         private MovingAverage _palmAngleX;
         private MovingAverage _palmAngleY;
+        private float _angleRangeForTrigger;
+        private float _angleRangeForGrip;
 
         private int _buttonMode;
         private bool _changeButtonMode;
@@ -47,7 +49,7 @@ namespace Alvr
             return Mathf.Abs(Mathf.DeltaAngle(angle1, angle2));
         }
 
-        private void Awake()
+        private void OnEnable()
         {
             _interval = new IntervalTimeRecorder(60);
             _palmAngleX = new MovingAverage(
@@ -58,6 +60,8 @@ namespace Alvr
                 averageWindowSamples,
                 new DataSampleFilter(_interval, twistAngleAverageWindowMs, averageWindowSamples)
             );
+            _angleRangeForTrigger = maxAngleForTrigger - thresholdAngleForTrigger;
+            _angleRangeForGrip = maxAngleForGrip - thresholdAngleForGrip;
         }
 
         private HandControllerState? ScanHandState(HandState state, ref Vector2? originOf2DInput)
@@ -97,20 +101,22 @@ namespace Alvr
 
             var controllerState = new HandControllerState();
 
-            // Button A/X and B/Y
+            if (_changeButtonMode)
+            {
+                _changeButtonMode = false;
+                _buttonMode = (_buttonMode + 1) % buttonModeNum;
+            }
+
+            controllerState.buttonMode = _buttonMode;
+
+            // Button A/X, B/Y and 2D Input Press
             var palmAngleX = palm.rotation.eulerAngles.x; // about 0..90
             palmAngleX = (palmAngleX + 180f) % 360f; // 0 and 360 to be the same
             var palmAngleXAverage = _palmAngleX.Average;
             var deltaAngleX = Mathf.DeltaAngle(palmAngleXAverage, palmAngleX);
 
-            if (deltaAngleX > thresholdAngleForButton)
+            if (-deltaAngleX > thresholdAngleForButton)
             {
-                if (_changeButtonMode)
-                {
-                    _changeButtonMode = false;
-                    _buttonMode = (_buttonMode + 1) % buttonModeNum;
-                }
-
                 controllerState.button = true;
             }
             else
@@ -118,34 +124,26 @@ namespace Alvr
                 _palmAngleX.Next(palmAngleX);
             }
 
-            controllerState.buttonMode = _buttonMode;
-
             // Debug.Log($"{controllerState.buttonMode} {controllerState.button} {(int)deltaAngleX} {(int)palmAngleX} {(int)palmAngleXAverage} {(int)palmAngleYAverage}");
 
             // Trigger
             var indexAngle = UnityEngine.Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
-            if (indexAngle > thresholdAngleForTrigger)
+            var triggerAngle = indexAngle - thresholdAngleForTrigger;
+            if (triggerAngle > 0f)
             {
-                controllerState.trigger = true;
+                controllerState.trigger =
+                    triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
             }
 
             // Grip
             var middleAngle = UnityEngine.Quaternion.Angle(middleProximal.rotation, middleMiddle.rotation);
-            if (middleAngle > thresholdAngleForGrip)
+            var gripAngle = middleAngle - thresholdAngleForGrip;
+            if (gripAngle > 0f)
             {
-                controllerState.grip = true;
+                controllerState.grip = gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
             }
 
-            // Debug.Log($"Trigger/Grip {controllerState.trigger} {(int)indexAngle} {controllerState.grip} {(int)middleAngle}");
-
-            // 2D Input Press
-            var thumbAngle = UnityEngine.Quaternion.Angle(thumbMetacarpal.rotation, thumbTip.rotation);
-            if (thumbAngle > thresholdAngleFor2DInputPress)
-            {
-                controllerState.input2DPress = true;
-            }
-
-            // Debug.Log($"2D Input Press {controllerState.input2DPress} {(int)thumbAngle}");
+            // Debug.Log($"Trigger/Grip {controllerState.trigger > 0f} {(int)controllerState.trigger} {(int)indexAngle} {controllerState.grip > 0f} {(int)controllerState.grip} {(int)middleAngle}");
 
             // 2D Input (joystick, trackpad, etc.)
             var thumbIndexDistance = UnityEngine.Vector3.Distance(thumbDistal.position, indexProximal.position);
@@ -178,10 +176,13 @@ namespace Alvr
             // Special buttons such as Menu and System
             var ringAngle = UnityEngine.Quaternion.Angle(ringProximal.rotation, ringMiddle.rotation);
             var bendRing = ringAngle > thresholdAngleForSystem;
-            if (!bendRing && state.currentGesture == HandGesture.Victory)
+            if (state.currentGesture == HandGesture.Victory &&
+                bendRing && controllerState.grip == 0f && controllerState.trigger == 0f)
             {
                 controllerState.system = true;
             }
+
+            Debug.Log($"{controllerState.system} {controllerState.buttonMode} {controllerState.button} {controllerState.trigger > 0f} {controllerState.grip > 0f} {controllerState.input2DPosition}");
 
             return controllerState;
         }
