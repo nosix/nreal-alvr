@@ -52,6 +52,13 @@ namespace Alvr
             return Mathf.Abs(Mathf.DeltaAngle(angle1, angle2));
         }
 
+        private static float ToRatio(float value, float maxAbsValue)
+        {
+            var sign = value < 0 ? -1f : 1f;
+            var absValue = Mathf.Abs(value);
+            return sign * (absValue > maxAbsValue ? 1f : absValue / maxAbsValue);
+        }
+
         private void OnEnable()
         {
             _interval = new IntervalTimeRecorder(60);
@@ -168,8 +175,8 @@ namespace Alvr
                 {
                     var moved = headAnchor.rotation * (palm.position - (UnityEngine.Vector3)originOf2DInput);
                     controllerState.input2DPosition = new Vector2(
-                        moved.x > maxDistance2DInput ? 1f : moved.x / maxDistance2DInput,
-                        moved.y > maxDistance2DInput ? 1f : moved.y / maxDistance2DInput
+                        ToRatio(moved.x, maxDistance2DInput),
+                        ToRatio(moved.y, maxDistance2DInput)
                     );
                 }
             }
