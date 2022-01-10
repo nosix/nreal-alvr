@@ -56,8 +56,8 @@ namespace Alvr
         private int _activeButtonId;
         private UnityEngine.Vector3? _lOriginOf2DInput;
         private UnityEngine.Vector3? _rOriginOf2DInput;
-        private HandControllerState _lCtrlState = new HandControllerState();
-        private HandControllerState _rCtrlState = new HandControllerState();
+        private HandControllerState _lCtrlState;
+        private HandControllerState _rCtrlState;
 
         private static float AbsDeltaAngle(float angle1, float angle2)
         {
