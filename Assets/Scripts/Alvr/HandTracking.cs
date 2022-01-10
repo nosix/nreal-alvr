@@ -8,9 +8,7 @@ namespace Alvr
         public Vector2? input2DPosition;
         public float trigger;
         public float grip;
-        public bool system;
-        public bool button;
-        public int buttonMode;
+        public int button;
     }
 
     public class HandTracking : MonoBehaviour
@@ -36,6 +34,7 @@ namespace Alvr
         private float _angleRangeForTrigger;
         private float _angleRangeForGrip;
 
+        private int _activeButtonId;
         private UnityEngine.Vector3? _lOriginOf2DInput;
 
         private static float AbsDeltaAngle(float angle1, float angle2)
@@ -59,6 +58,8 @@ namespace Alvr
             );
             _angleRangeForTrigger = maxAngleForTrigger - thresholdAngleForTrigger;
             _angleRangeForGrip = maxAngleForGrip - thresholdAngleForGrip;
+            _activeButtonId = -1;
+            _lOriginOf2DInput = null;
         }
 
         private HandControllerState? ScanHandState(HandState state, ref UnityEngine.Vector3? originOf2DInput)
@@ -85,7 +86,10 @@ namespace Alvr
             var middleProximal = state.GetJointPose(HandJointID.MiddleProximal);
             var middleMiddle = state.GetJointPose(HandJointID.MiddleMiddle);
 
-            var controllerState = new HandControllerState();
+            var controllerState = new HandControllerState
+            {
+                button = _activeButtonId
+            };
 
             // Trigger
             var indexAngle = UnityEngine.Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
@@ -138,17 +142,19 @@ namespace Alvr
                 originOf2DInput = null;
             }
 
+            Debug.Log($"{controllerState.button} {controllerState.trigger} {controllerState.grip} {controllerState.input2DPosition}");
+
             return controllerState;
         }
 
         public void PressButton(int buttonId)
         {
-            Debug.Log($"Press {buttonId}");
+            _activeButtonId = buttonId;
         }
 
-        public void ReleaseButton(int buttonId)
+        public void ReleaseButton()
         {
-            Debug.Log($"Release {buttonId}");
+            _activeButtonId = -1;
         }
 
         private void Update()

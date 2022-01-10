@@ -28,7 +28,7 @@ namespace Alvr
         public void ReleaseButton()
         {
             _image.color = defaultColor;
-            handTracking.ReleaseButton(buttonId);
+            handTracking.ReleaseButton();
         }
     }
 }
