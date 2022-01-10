@@ -1,5 +1,6 @@
 using NRKernal;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Alvr
 {
@@ -26,13 +27,24 @@ namespace Alvr
         [SerializeField] private float twistAngleAverageWindowMs = 1000f;
         [SerializeField] private int averageWindowSamples = 120;
 
+        [SerializeField] private Image l2DInput;
+        [SerializeField] private Image lGrip;
+        [SerializeField] private Image lTrigger;
+
         private static readonly UnityEngine.Quaternion RotateAroundY =
             UnityEngine.Quaternion.AngleAxis(90f, UnityEngine.Vector3.up);
+        private static readonly int Value = Shader.PropertyToID("value");
+        private static readonly int X = Shader.PropertyToID("x");
+        private static readonly int Y = Shader.PropertyToID("y");
 
         private IntervalTimeRecorder _interval;
         private MovingAverage _palmAngleY;
         private float _angleRangeForTrigger;
         private float _angleRangeForGrip;
+
+        private Material _l2DInputMaterial;
+        private Material _lGripMaterial;
+        private Material _lTriggerMaterial;
 
         private int _activeButtonId;
         private UnityEngine.Vector3? _lOriginOf2DInput;
@@ -47,6 +59,17 @@ namespace Alvr
             var sign = value < 0 ? -1f : 1f;
             var absValue = Mathf.Abs(value);
             return sign * (absValue > maxAbsValue ? 1f : absValue / maxAbsValue);
+        }
+
+        private void Awake()
+        {
+            _l2DInputMaterial = Instantiate(l2DInput.material);
+            _lGripMaterial = Instantiate(lGrip.material);
+            _lTriggerMaterial = Instantiate(lTrigger.material);
+
+            l2DInput.material = _l2DInputMaterial;
+            lGrip.material = _lGripMaterial;
+            lTrigger.material = _lTriggerMaterial;
         }
 
         private void OnEnable()
@@ -161,7 +184,13 @@ namespace Alvr
         {
             var lState = NRInput.Hands.GetHandState(HandEnum.LeftHand);
             var rState = NRInput.Hands.GetHandState(HandEnum.RightHand);
-            ScanHandState(lState, ref _lOriginOf2DInput);
+            var lCtrlState = ScanHandState(lState, ref _lOriginOf2DInput);
+            if (lCtrlState != null) {
+                _lGripMaterial.SetFloat(Value, lCtrlState.Value.grip);
+                _lTriggerMaterial.SetFloat(Value, lCtrlState.Value.trigger);
+                _l2DInputMaterial.SetFloat(X, lCtrlState.Value.input2DPosition?.x ?? 0f);
+                _l2DInputMaterial.SetFloat(Y, lCtrlState.Value.input2DPosition?.y ?? 0f);
+            }
         }
     }
 }
