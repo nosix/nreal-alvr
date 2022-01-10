@@ -34,9 +34,7 @@ namespace Alvr
         [SerializeField] private Image rGripIndicator;
         [SerializeField] private Image rTriggerIndicator;
 
-        private static readonly UnityEngine.Quaternion RotateAroundY =
-            UnityEngine.Quaternion.AngleAxis(90f, UnityEngine.Vector3.up);
-
+        private static readonly Quaternion RotateAroundY = Quaternion.AngleAxis(90f, Vector3.up);
         private static readonly int Value = Shader.PropertyToID("value");
         private static readonly int X = Shader.PropertyToID("x");
         private static readonly int Y = Shader.PropertyToID("y");
@@ -54,8 +52,8 @@ namespace Alvr
         private Material _rTriggerMaterial;
 
         private int _activeButtonId;
-        private UnityEngine.Vector3? _lOriginOf2DInput;
-        private UnityEngine.Vector3? _rOriginOf2DInput;
+        private Vector3? _lOriginOf2DInput;
+        private Vector3? _rOriginOf2DInput;
         private HandControllerState _lCtrlState;
         private HandControllerState _rCtrlState;
 
@@ -115,7 +113,7 @@ namespace Alvr
         private void ScanHandState(
             HandState state,
             ref HandControllerState ctrlState,
-            ref UnityEngine.Vector3? originOf2DInput
+            ref Vector3? originOf2DInput
         )
         {
             _interval.NextTick();
@@ -143,7 +141,7 @@ namespace Alvr
             ctrlState.button = _activeButtonId;
 
             // Trigger
-            var indexAngle = UnityEngine.Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
+            var indexAngle = Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
             var triggerAngle = indexAngle - thresholdAngleForTrigger;
             if (triggerAngle > 0f)
             {
@@ -156,7 +154,7 @@ namespace Alvr
             }
 
             // Grip
-            var middleAngle = UnityEngine.Quaternion.Angle(middleProximal.rotation, middleMiddle.rotation);
+            var middleAngle = Quaternion.Angle(middleProximal.rotation, middleMiddle.rotation);
             var gripAngle = middleAngle - thresholdAngleForGrip;
             if (gripAngle > 0f)
             {
@@ -170,11 +168,11 @@ namespace Alvr
             // Debug.Log($"Trigger/Grip {controllerState.trigger > 0f} {(int)controllerState.trigger} {(int)indexAngle} {controllerState.grip > 0f} {(int)controllerState.grip} {(int)middleAngle}");
 
             // 2D Input (joystick, trackpad, etc.)
-            var thumbIndexDistance = UnityEngine.Vector3.Distance(thumbDistal.position, indexProximal.position);
+            var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
             var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceEnable2DInput;
 
             var thumbIndexAngle =
-                UnityEngine.Quaternion.Angle(thumbDistal.rotation * RotateAroundY, indexProximal.rotation);
+                Quaternion.Angle(thumbDistal.rotation * RotateAroundY, indexProximal.rotation);
             var nearThumbIndexAngle = thumbIndexAngle < thresholdAngleEnable2DInput;
 
             var enable2DInput = nearThumbIndexPosition || nearThumbIndexAngle;
@@ -192,7 +190,7 @@ namespace Alvr
                 }
                 else
                 {
-                    var moved = headAnchor.rotation * (palm.position - (UnityEngine.Vector3)originOf2DInput);
+                    var moved = headAnchor.rotation * (palm.position - (Vector3)originOf2DInput);
                     ctrlState.input2DPosition.x = ToRatio(moved.x, maxDistance2DInput);
                     ctrlState.input2DPosition.y = ToRatio(moved.y, maxDistance2DInput);
                 }

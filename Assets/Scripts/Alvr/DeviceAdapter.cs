@@ -25,15 +25,15 @@ namespace Alvr
 
         public byte battery;
         public byte plugged;
-        public Rect lEyeFov = new Rect();
-        public Rect rEyeFov = new Rect();
-        public Quaternion headPoseOrientation = new Quaternion();
-        public Vector3 headPosePosition = new Vector3();
+        public CRect lEyeFov = new CRect();
+        public CRect rEyeFov = new CRect();
+        public CQuaternion headPoseOrientation = new CQuaternion();
+        public CVector3 headPosePosition = new CVector3();
     }
 
     [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code
     [StructLayout(LayoutKind.Sequential)]
-    public struct Rect {
+    public struct CRect {
         public float left;
         public float right;
         public float top;
@@ -42,7 +42,7 @@ namespace Alvr
 
     [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code
     [StructLayout(LayoutKind.Sequential)]
-    public struct Quaternion
+    public struct CQuaternion
     {
         public float x;
         public float y;
@@ -52,7 +52,7 @@ namespace Alvr
 
     [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code
     [StructLayout(LayoutKind.Sequential)]
-    public struct Vector3
+    public struct CVector3
     {
         public float x;
         public float y;

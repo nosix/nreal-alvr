@@ -17,12 +17,12 @@ namespace Alvr
 
         private static readonly UnityEngine.Vector3 RotateDirection = new UnityEngine.Vector3(-1f, -1f, 1f);
 
-        private static Rect GetEyeFov(float diagonalFovAngle, float width, float height)
+        private static CRect GetEyeFov(float diagonalFovAngle, float width, float height)
         {
             var screenDiagonalAngleFromAdjacent = Mathf.Atan(height / width);
             var screenWidthAngle = Mathf.Cos(screenDiagonalAngleFromAdjacent) * diagonalFovAngle;
             var screenHeightAngle = Mathf.Sin(screenDiagonalAngleFromAdjacent) * diagonalFovAngle;
-            return new Rect
+            return new CRect
             {
                 left = screenWidthAngle,
                 right = screenWidthAngle,
@@ -46,13 +46,13 @@ namespace Alvr
             _tracking.plugged = 1;
             _tracking.lEyeFov = eyeFov;
             _tracking.rEyeFov = eyeFov;
-            _tracking.headPosePosition = new Vector3
+            _tracking.headPosePosition = new CVector3
             {
                 x = headPose.position.x,
                 y = headPose.position.y + eyeHeight,
                 z = headPose.position.z
             };
-            _tracking.headPoseOrientation = new Quaternion
+            _tracking.headPoseOrientation = new CQuaternion
             {
                 x = headPose.rotation.x,
                 y = headPose.rotation.y,
