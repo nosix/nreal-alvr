@@ -1754,12 +1754,12 @@ MonoBehaviour:
   thresholdAngleForTwist: 40
   twistAngleAverageWindowMs: 1000
   averageWindowSamples: 120
-  l2DInput: {fileID: 2117068289}
-  lGrip: {fileID: 1892834102}
-  lTrigger: {fileID: 2084148508}
-  r2DInput: {fileID: 905081174}
-  rGrip: {fileID: 1396936088}
-  rTrigger: {fileID: 1935918025}
+  l2DInputIndicator: {fileID: 2117068289}
+  lGripIndicator: {fileID: 1892834102}
+  lTriggerIndicator: {fileID: 2084148508}
+  r2DInputIndicator: {fileID: 905081174}
+  rGripIndicator: {fileID: 1396936088}
+  rTriggerIndicator: {fileID: 1935918025}
 --- !u!1 &767705132
 GameObject:
   m_ObjectHideFlags: 0

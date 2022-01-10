@@ -27,12 +27,12 @@ namespace Alvr
         [SerializeField] private float twistAngleAverageWindowMs = 1000f;
         [SerializeField] private int averageWindowSamples = 120;
 
-        [SerializeField] private Image l2DInput;
-        [SerializeField] private Image lGrip;
-        [SerializeField] private Image lTrigger;
-        [SerializeField] private Image r2DInput;
-        [SerializeField] private Image rGrip;
-        [SerializeField] private Image rTrigger;
+        [SerializeField] private Image l2DInputIndicator;
+        [SerializeField] private Image lGripIndicator;
+        [SerializeField] private Image lTriggerIndicator;
+        [SerializeField] private Image r2DInputIndicator;
+        [SerializeField] private Image rGripIndicator;
+        [SerializeField] private Image rTriggerIndicator;
 
         private static readonly UnityEngine.Quaternion RotateAroundY =
             UnityEngine.Quaternion.AngleAxis(90f, UnityEngine.Vector3.up);
@@ -70,19 +70,19 @@ namespace Alvr
 
         private void Awake()
         {
-            _l2DInputMaterial = Instantiate(l2DInput.material);
-            _lGripMaterial = Instantiate(lGrip.material);
-            _lTriggerMaterial = Instantiate(lTrigger.material);
-            _r2DInputMaterial = Instantiate(r2DInput.material);
-            _rGripMaterial = Instantiate(rGrip.material);
-            _rTriggerMaterial = Instantiate(rTrigger.material);
+            _l2DInputMaterial = Instantiate(l2DInputIndicator.material);
+            _lGripMaterial = Instantiate(lGripIndicator.material);
+            _lTriggerMaterial = Instantiate(lTriggerIndicator.material);
+            _r2DInputMaterial = Instantiate(r2DInputIndicator.material);
+            _rGripMaterial = Instantiate(rGripIndicator.material);
+            _rTriggerMaterial = Instantiate(rTriggerIndicator.material);
 
-            l2DInput.material = _l2DInputMaterial;
-            lGrip.material = _lGripMaterial;
-            lTrigger.material = _lTriggerMaterial;
-            r2DInput.material = _r2DInputMaterial;
-            rGrip.material = _rGripMaterial;
-            rTrigger.material = _rTriggerMaterial;
+            l2DInputIndicator.material = _l2DInputMaterial;
+            lGripIndicator.material = _lGripMaterial;
+            lTriggerIndicator.material = _lTriggerMaterial;
+            r2DInputIndicator.material = _r2DInputMaterial;
+            rGripIndicator.material = _rGripMaterial;
+            rTriggerIndicator.material = _rTriggerMaterial;
         }
 
         private void OnDestroy()
