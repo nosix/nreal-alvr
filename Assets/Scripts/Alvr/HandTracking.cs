@@ -30,6 +30,9 @@ namespace Alvr
         [SerializeField] private Image l2DInput;
         [SerializeField] private Image lGrip;
         [SerializeField] private Image lTrigger;
+        [SerializeField] private Image r2DInput;
+        [SerializeField] private Image rGrip;
+        [SerializeField] private Image rTrigger;
 
         private static readonly UnityEngine.Quaternion RotateAroundY =
             UnityEngine.Quaternion.AngleAxis(90f, UnityEngine.Vector3.up);
@@ -45,9 +48,13 @@ namespace Alvr
         private Material _l2DInputMaterial;
         private Material _lGripMaterial;
         private Material _lTriggerMaterial;
+        private Material _r2DInputMaterial;
+        private Material _rGripMaterial;
+        private Material _rTriggerMaterial;
 
         private int _activeButtonId;
         private UnityEngine.Vector3? _lOriginOf2DInput;
+        private UnityEngine.Vector3? _rOriginOf2DInput;
 
         private static float AbsDeltaAngle(float angle1, float angle2)
         {
@@ -66,10 +73,26 @@ namespace Alvr
             _l2DInputMaterial = Instantiate(l2DInput.material);
             _lGripMaterial = Instantiate(lGrip.material);
             _lTriggerMaterial = Instantiate(lTrigger.material);
+            _r2DInputMaterial = Instantiate(r2DInput.material);
+            _rGripMaterial = Instantiate(rGrip.material);
+            _rTriggerMaterial = Instantiate(rTrigger.material);
 
             l2DInput.material = _l2DInputMaterial;
             lGrip.material = _lGripMaterial;
             lTrigger.material = _lTriggerMaterial;
+            r2DInput.material = _r2DInputMaterial;
+            rGrip.material = _rGripMaterial;
+            rTrigger.material = _rTriggerMaterial;
+        }
+
+        private void OnDestroy()
+        {
+            Destroy(_l2DInputMaterial);
+            Destroy(_lGripMaterial);
+            Destroy(_lTriggerMaterial);
+            Destroy(_r2DInputMaterial);
+            Destroy(_rGripMaterial);
+            Destroy(_rTriggerMaterial);
         }
 
         private void OnEnable()
@@ -83,6 +106,7 @@ namespace Alvr
             _angleRangeForGrip = maxAngleForGrip - thresholdAngleForGrip;
             _activeButtonId = -1;
             _lOriginOf2DInput = null;
+            _rOriginOf2DInput = null;
         }
 
         private HandControllerState? ScanHandState(HandState state, ref UnityEngine.Vector3? originOf2DInput)
@@ -185,11 +209,18 @@ namespace Alvr
             var lState = NRInput.Hands.GetHandState(HandEnum.LeftHand);
             var rState = NRInput.Hands.GetHandState(HandEnum.RightHand);
             var lCtrlState = ScanHandState(lState, ref _lOriginOf2DInput);
+            var rCtrlState = ScanHandState(rState, ref _rOriginOf2DInput);
             if (lCtrlState != null) {
                 _lGripMaterial.SetFloat(Value, lCtrlState.Value.grip);
                 _lTriggerMaterial.SetFloat(Value, lCtrlState.Value.trigger);
                 _l2DInputMaterial.SetFloat(X, lCtrlState.Value.input2DPosition?.x ?? 0f);
                 _l2DInputMaterial.SetFloat(Y, lCtrlState.Value.input2DPosition?.y ?? 0f);
+            }
+            if (rCtrlState != null) {
+                _rGripMaterial.SetFloat(Value, rCtrlState.Value.grip);
+                _rTriggerMaterial.SetFloat(Value, rCtrlState.Value.trigger);
+                _r2DInputMaterial.SetFloat(X, rCtrlState.Value.input2DPosition?.x ?? 0f);
+                _r2DInputMaterial.SetFloat(Y, rCtrlState.Value.input2DPosition?.y ?? 0f);
             }
         }
     }
