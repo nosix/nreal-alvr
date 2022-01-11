@@ -29,6 +29,21 @@ namespace Alvr
         public CRect rEyeFov = new CRect();
         public CQuaternion headPoseOrientation = new CQuaternion();
         public CVector3 headPosePosition = new CVector3();
+        public Controller lCtrl = new Controller();
+        public Controller rCtrl = new Controller();
+    }
+
+    [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Controller
+    {
+        public ulong buttons;
+        public float trackpadPositionX;
+        public float trackpadPositionY;
+        public float triggerValue;
+        public float gripValue;
+        public CQuaternion orientation;
+        public CVector3 position;
     }
 
     [SuppressMessage("ReSharper", "NotAccessedField.Global")] // Accessed with native code

@@ -1760,6 +1760,7 @@ MonoBehaviour:
   r2DInputIndicator: {fileID: 905081174}
   rGripIndicator: {fileID: 1396936088}
   rTriggerIndicator: {fileID: 1935918025}
+  debug: 1
 --- !u!1 &767705132
 GameObject:
   m_ObjectHideFlags: 0

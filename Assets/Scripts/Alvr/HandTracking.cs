@@ -1,10 +1,12 @@
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using NRKernal;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Alvr
 {
-    struct HandControllerState
+    public struct HandControllerState
     {
         public Vector2 input2DPosition;
         public float trigger;
@@ -33,6 +35,8 @@ namespace Alvr
         [SerializeField] private Image r2DInputIndicator;
         [SerializeField] private Image rGripIndicator;
         [SerializeField] private Image rTriggerIndicator;
+
+        [SerializeField] private bool debug;
 
         private static readonly Quaternion RotateAroundY = Quaternion.AngleAxis(90f, Vector3.up);
         private static readonly int Value = Shader.PropertyToID("value");
@@ -88,6 +92,7 @@ namespace Alvr
 
         private void OnDestroy()
         {
+            StopCoroutine(nameof(ScanHandStateLoop));
             Destroy(_l2DInputMaterial);
             Destroy(_lGripMaterial);
             Destroy(_lTriggerMaterial);
@@ -110,14 +115,44 @@ namespace Alvr
             _rOriginOf2DInput = null;
         }
 
+        private void Start()
+        {
+            if (debug) StartCoroutine(nameof(ScanHandStateLoop));
+        }
+
+        [SuppressMessage("ReSharper", "IteratorNeverReturns")]
+        private IEnumerator ScanHandStateLoop()
+        {
+            while (true)
+            {
+                ScanHandState(ref _lCtrlState, ref _rCtrlState);
+                yield return new WaitForEndOfFrame();
+            }
+        }
+
+        public void ScanHandState(ref HandControllerState lCtrlState, ref HandControllerState rCtrlState)
+        {
+            _interval.NextTick();
+            var lState = NRInput.Hands.GetHandState(HandEnum.LeftHand);
+            var rState = NRInput.Hands.GetHandState(HandEnum.RightHand);
+            ScanHandState(lState, ref lCtrlState, ref _lOriginOf2DInput);
+            ScanHandState(rState, ref rCtrlState, ref _rOriginOf2DInput);
+            _lGripMaterial.SetFloat(Value, lCtrlState.grip);
+            _lTriggerMaterial.SetFloat(Value, lCtrlState.trigger);
+            _l2DInputMaterial.SetFloat(X, lCtrlState.input2DPosition.x);
+            _l2DInputMaterial.SetFloat(Y, lCtrlState.input2DPosition.y);
+            _rGripMaterial.SetFloat(Value, rCtrlState.grip);
+            _rTriggerMaterial.SetFloat(Value, rCtrlState.trigger);
+            _r2DInputMaterial.SetFloat(X, rCtrlState.input2DPosition.x);
+            _r2DInputMaterial.SetFloat(Y, rCtrlState.input2DPosition.y);
+        }
+
         private void ScanHandState(
             HandState state,
             ref HandControllerState ctrlState,
             ref Vector3? originOf2DInput
         )
         {
-            _interval.NextTick();
-
             if (!state.isTracked) return;
 
             var palm = state.GetJointPose(HandJointID.Palm);
@@ -211,22 +246,6 @@ namespace Alvr
         public void ReleaseButton()
         {
             _activeButtonId = -1;
-        }
-
-        private void Update()
-        {
-            var lState = NRInput.Hands.GetHandState(HandEnum.LeftHand);
-            var rState = NRInput.Hands.GetHandState(HandEnum.RightHand);
-            ScanHandState(lState, ref _lCtrlState, ref _lOriginOf2DInput);
-            ScanHandState(rState, ref _rCtrlState, ref _rOriginOf2DInput);
-            _lGripMaterial.SetFloat(Value, _lCtrlState.grip);
-            _lTriggerMaterial.SetFloat(Value, _lCtrlState.trigger);
-            _l2DInputMaterial.SetFloat(X, _lCtrlState.input2DPosition.x);
-            _l2DInputMaterial.SetFloat(Y, _lCtrlState.input2DPosition.y);
-            _rGripMaterial.SetFloat(Value, _rCtrlState.grip);
-            _rTriggerMaterial.SetFloat(Value, _rCtrlState.trigger);
-            _r2DInputMaterial.SetFloat(X, _rCtrlState.input2DPosition.x);
-            _r2DInputMaterial.SetFloat(Y, _rCtrlState.input2DPosition.y);
         }
     }
 }

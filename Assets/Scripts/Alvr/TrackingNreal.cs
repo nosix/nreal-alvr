@@ -15,7 +15,7 @@ namespace Alvr
         private readonly Tracking _tracking = new Tracking();
         private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
 
-        private static readonly UnityEngine.Vector3 RotateDirection = new UnityEngine.Vector3(-1f, -1f, 1f);
+        private static readonly Vector3 RotateDirection = new Vector3(-1f, -1f, 1f);
 
         private static CRect GetEyeFov(float diagonalFovAngle, float width, float height)
         {
@@ -66,8 +66,8 @@ namespace Alvr
         private static Pose GetHeadPose()
         {
             var headPosePosition = NRFrame.HeadPose.position;
-            var headPoseRotation = UnityEngine.Quaternion.Euler(
-                UnityEngine.Vector3.Scale(NRFrame.HeadPose.rotation.eulerAngles, RotateDirection)
+            var headPoseRotation = Quaternion.Euler(
+                Vector3.Scale(NRFrame.HeadPose.rotation.eulerAngles, RotateDirection)
             );
             return new Pose(headPosePosition, headPoseRotation);
         }
