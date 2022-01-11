@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using NRKernal;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,16 +9,16 @@ namespace Alvr
 {
     public struct HandControllerState
     {
-        public Vector2 input2DPosition;
-        public float trigger;
-        public float grip;
-        public int button;
+        public Quaternion Orientation;
+        public Vector3 Position;
+        public Vector2 Input2DPosition;
+        public float Trigger;
+        public float Grip;
+        public ulong Buttons;
     }
 
     public class HandTracking : MonoBehaviour
     {
-        [SerializeField] private Transform headAnchor;
-
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceEnable2DInput = 0.03f;
         [SerializeField] private float thresholdAngleEnable2DInput = 25f;
@@ -43,6 +44,8 @@ namespace Alvr
         private static readonly int X = Shader.PropertyToID("x");
         private static readonly int Y = Shader.PropertyToID("y");
 
+        private readonly Subject<Unit> _onUpdatedCtrlState = new Subject<Unit>();
+
         private IntervalTimeRecorder _interval;
         private MovingAverage _palmAngleY;
         private float _angleRangeForTrigger;
@@ -60,6 +63,9 @@ namespace Alvr
         private Vector3? _rOriginOf2DInput;
         private HandControllerState _lCtrlState;
         private HandControllerState _rCtrlState;
+
+        public HandControllerState LCtrlState => _lCtrlState;
+        public HandControllerState RCtrlState => _rCtrlState;
 
         private static float AbsDeltaAngle(float angle1, float angle2)
         {
@@ -88,11 +94,15 @@ namespace Alvr
             r2DInputIndicator.material = _r2DInputMaterial;
             rGripIndicator.material = _rGripMaterial;
             rTriggerIndicator.material = _rTriggerMaterial;
+
+            _onUpdatedCtrlState
+                .ObserveOnMainThread()
+                .Subscribe(_ => UpdateIndicators());
         }
 
         private void OnDestroy()
         {
-            StopCoroutine(nameof(ScanHandStateLoop));
+            StopCoroutine(nameof(UpdateHandStateLoop));
             Destroy(_l2DInputMaterial);
             Destroy(_lGripMaterial);
             Destroy(_lTriggerMaterial);
@@ -117,34 +127,32 @@ namespace Alvr
 
         private void Start()
         {
-            if (debug) StartCoroutine(nameof(ScanHandStateLoop));
+            if (debug) StartCoroutine(nameof(UpdateHandStateLoop));
         }
 
         [SuppressMessage("ReSharper", "IteratorNeverReturns")]
-        private IEnumerator ScanHandStateLoop()
+        private IEnumerator UpdateHandStateLoop()
         {
             while (true)
             {
-                ScanHandState(ref _lCtrlState, ref _rCtrlState);
+                UpdateHandStateInternal();
                 yield return new WaitForEndOfFrame();
             }
         }
 
-        public void ScanHandState(ref HandControllerState lCtrlState, ref HandControllerState rCtrlState)
+        public void UpdateHandState()
+        {
+            if (!debug) UpdateHandStateInternal();
+        }
+
+        private void UpdateHandStateInternal()
         {
             _interval.NextTick();
             var lState = NRInput.Hands.GetHandState(HandEnum.LeftHand);
             var rState = NRInput.Hands.GetHandState(HandEnum.RightHand);
-            ScanHandState(lState, ref lCtrlState, ref _lOriginOf2DInput);
-            ScanHandState(rState, ref rCtrlState, ref _rOriginOf2DInput);
-            _lGripMaterial.SetFloat(Value, lCtrlState.grip);
-            _lTriggerMaterial.SetFloat(Value, lCtrlState.trigger);
-            _l2DInputMaterial.SetFloat(X, lCtrlState.input2DPosition.x);
-            _l2DInputMaterial.SetFloat(Y, lCtrlState.input2DPosition.y);
-            _rGripMaterial.SetFloat(Value, rCtrlState.grip);
-            _rTriggerMaterial.SetFloat(Value, rCtrlState.trigger);
-            _r2DInputMaterial.SetFloat(X, rCtrlState.input2DPosition.x);
-            _r2DInputMaterial.SetFloat(Y, rCtrlState.input2DPosition.y);
+            ScanHandState(lState, ref _lCtrlState, ref _lOriginOf2DInput);
+            ScanHandState(rState, ref _rCtrlState, ref _rOriginOf2DInput);
+            _onUpdatedCtrlState.OnNext(Unit.Default);
         }
 
         private void ScanHandState(
@@ -173,19 +181,21 @@ namespace Alvr
             var middleProximal = state.GetJointPose(HandJointID.MiddleProximal);
             var middleMiddle = state.GetJointPose(HandJointID.MiddleMiddle);
 
-            ctrlState.button = _activeButtonId;
+            ctrlState.Orientation = palm.rotation;
+            ctrlState.Position = palm.position;
+            ctrlState.Buttons = MapButton(_activeButtonId);
 
             // Trigger
             var indexAngle = Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
             var triggerAngle = indexAngle - thresholdAngleForTrigger;
             if (triggerAngle > 0f)
             {
-                ctrlState.trigger =
+                ctrlState.Trigger =
                     triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
             }
             else
             {
-                ctrlState.trigger = 0f;
+                ctrlState.Trigger = 0f;
             }
 
             // Grip
@@ -193,16 +203,17 @@ namespace Alvr
             var gripAngle = middleAngle - thresholdAngleForGrip;
             if (gripAngle > 0f)
             {
-                ctrlState.grip = gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
+                ctrlState.Grip = gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
             }
             else
             {
-                ctrlState.grip = 0f;
+                ctrlState.Grip = 0f;
             }
 
             // Debug.Log($"Trigger/Grip {controllerState.trigger > 0f} {(int)controllerState.trigger} {(int)indexAngle} {controllerState.grip > 0f} {(int)controllerState.grip} {(int)middleAngle}");
 
             // 2D Input (joystick, trackpad, etc.)
+            // FIXME There are many recognition mistakes
             var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
             var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceEnable2DInput;
 
@@ -214,8 +225,8 @@ namespace Alvr
 
             // Debug.Log($"2D Input {enable2DInput} {thumbIndexDistance} {(int)thumbIndexAngle}");
 
-            ctrlState.input2DPosition.x = 0f;
-            ctrlState.input2DPosition.y = 0f;
+            ctrlState.Input2DPosition.x = 0f;
+            ctrlState.Input2DPosition.y = 0f;
 
             if (enable2DInput)
             {
@@ -225,9 +236,9 @@ namespace Alvr
                 }
                 else
                 {
-                    var moved = headAnchor.rotation * (palm.position - (Vector3)originOf2DInput);
-                    ctrlState.input2DPosition.x = ToRatio(moved.x, maxDistance2DInput);
-                    ctrlState.input2DPosition.y = ToRatio(moved.y, maxDistance2DInput);
+                    var moved = NRFrame.HeadPose.rotation * (palm.position - (Vector3)originOf2DInput);
+                    ctrlState.Input2DPosition.x = ToRatio(moved.x, maxDistance2DInput);
+                    ctrlState.Input2DPosition.y = ToRatio(moved.y, maxDistance2DInput);
                 }
             }
             else
@@ -238,6 +249,18 @@ namespace Alvr
             // Debug.Log($"{controllerState.button} {controllerState.trigger} {controllerState.grip} {controllerState.input2DPosition}");
         }
 
+        private void UpdateIndicators()
+        {
+            _lGripMaterial.SetFloat(Value, _lCtrlState.Grip);
+            _lTriggerMaterial.SetFloat(Value, _lCtrlState.Trigger);
+            _l2DInputMaterial.SetFloat(X, _lCtrlState.Input2DPosition.x);
+            _l2DInputMaterial.SetFloat(Y, _lCtrlState.Input2DPosition.y);
+            _rGripMaterial.SetFloat(Value, _rCtrlState.Grip);
+            _rTriggerMaterial.SetFloat(Value, _rCtrlState.Trigger);
+            _r2DInputMaterial.SetFloat(X, _rCtrlState.Input2DPosition.x);
+            _r2DInputMaterial.SetFloat(Y, _rCtrlState.Input2DPosition.y);
+        }
+
         public void PressButton(int buttonId)
         {
             _activeButtonId = buttonId;
@@ -246,6 +269,35 @@ namespace Alvr
         public void ReleaseButton()
         {
             _activeButtonId = -1;
+        }
+
+        private static ulong MapButton(int buttonId)
+        {
+            return buttonId switch
+            {
+                0 => ToFlag(AlvrInput.JoystickTouch)
+                     | ToFlag(AlvrInput.JoystickClick)
+                     | ToFlag(AlvrInput.JoystickLeftClick)
+                     | ToFlag(AlvrInput.TrackpadTouch)
+                     | ToFlag(AlvrInput.TrackpadClick),
+                1 => ToFlag(AlvrInput.ATouch) | ToFlag(AlvrInput.AClick),
+                2 => ToFlag(AlvrInput.BTouch) | ToFlag(AlvrInput.BClick),
+                3 => ToFlag(AlvrInput.ApplicationMenuClick),
+                4 => ToFlag(AlvrInput.SystemClick),
+                5 => ToFlag(AlvrInput.XTouch) | ToFlag(AlvrInput.XClick),
+                6 => ToFlag(AlvrInput.YTouch) | ToFlag(AlvrInput.YClick),
+                7 => ToFlag(AlvrInput.JoystickTouch)
+                     | ToFlag(AlvrInput.JoystickClick)
+                     | ToFlag(AlvrInput.JoystickRightClick)
+                     | ToFlag(AlvrInput.TrackpadTouch)
+                     | ToFlag(AlvrInput.TrackpadClick),
+                _ => 0
+            };
+        }
+
+        private static ulong ToFlag(AlvrInput input)
+        {
+            return 1UL << (int)input;
         }
     }
 }

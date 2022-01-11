@@ -8,6 +8,7 @@ namespace Alvr
     {
         [SerializeField] private AlvrClient alvrClient;
         [SerializeField] private float eyeHeight = 1.55f;
+        [SerializeField] private HandTracking handTracking;
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
         private const float DiagonalFovAngle = 52f;
@@ -59,6 +60,54 @@ namespace Alvr
                 z = headPose.rotation.z,
                 w = headPose.rotation.w
             };
+            if (handTracking != null)
+            {
+                handTracking.UpdateHandState();
+                var lCtrlState = handTracking.LCtrlState;
+                var rCtrlState = handTracking.RCtrlState;
+                _tracking.lCtrl = new Controller
+                {
+                    buttons = lCtrlState.Buttons,
+                    trackpadPositionX = lCtrlState.Input2DPosition.x,
+                    trackpadPositionY = lCtrlState.Input2DPosition.y,
+                    triggerValue = lCtrlState.Trigger,
+                    gripValue = lCtrlState.Grip,
+                    orientation = new CQuaternion
+                    {
+                        x = lCtrlState.Orientation.x,
+                        y = lCtrlState.Orientation.y,
+                        z = lCtrlState.Orientation.z,
+                        w = lCtrlState.Orientation.w
+                    },
+                    position = new CVector3
+                    {
+                        x = lCtrlState.Position.x,
+                        y = lCtrlState.Position.y,
+                        z = lCtrlState.Position.z
+                    }
+                };
+                _tracking.rCtrl = new Controller
+                {
+                    buttons = rCtrlState.Buttons,
+                    trackpadPositionX = rCtrlState.Input2DPosition.x,
+                    trackpadPositionY = rCtrlState.Input2DPosition.y,
+                    triggerValue = rCtrlState.Trigger,
+                    gripValue = rCtrlState.Grip,
+                    orientation = new CQuaternion
+                    {
+                        x = rCtrlState.Orientation.x,
+                        y = rCtrlState.Orientation.y,
+                        z = rCtrlState.Orientation.z,
+                        w = rCtrlState.Orientation.w
+                    },
+                    position = new CVector3
+                    {
+                        x = rCtrlState.Position.x,
+                        y = rCtrlState.Position.y,
+                        z = rCtrlState.Position.z
+                    }
+                };
+            }
             _headPoseHistory.Add(frameIndex, headPose);
             return _tracking;
         }

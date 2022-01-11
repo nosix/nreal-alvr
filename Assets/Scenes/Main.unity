@@ -1502,6 +1502,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   alvrClient: {fileID: 644375757}
   eyeHeight: 1.55
+  handTracking: {fileID: 739769388}
   onRendered:
     m_PersistentCalls:
       m_Calls:
@@ -1743,7 +1744,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfcaf5df7c454d90a122b65701f6a05c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  headAnchor: {fileID: 628796551}
   maxDistance2DInput: 0.1
   thresholdDistanceEnable2DInput: 0.03
   thresholdAngleEnable2DInput: 25
@@ -1760,7 +1760,7 @@ MonoBehaviour:
   r2DInputIndicator: {fileID: 905081174}
   rGripIndicator: {fileID: 1396936088}
   rTriggerIndicator: {fileID: 1935918025}
-  debug: 1
+  debug: 0
 --- !u!1 &767705132
 GameObject:
   m_ObjectHideFlags: 0
