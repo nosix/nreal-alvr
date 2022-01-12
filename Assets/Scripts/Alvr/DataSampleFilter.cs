@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Alvr
 {
     public class DataSampleFilter
@@ -24,8 +26,13 @@ namespace Alvr
             var frequency = _windowMs / _interval.Value;
             var step = (int)(frequency / _windowSamples);
 
+            if (step == 0)
+            {
+                Debug.LogWarning($"The windowSamples is too large. Must be smaller than {frequency}.");
+                return true;
+            }
+
             // Take a sample only once in step times
-            if (step <= 1) return true;
             _count = (_count + 1) % step;
             return _count == 0;
         }
