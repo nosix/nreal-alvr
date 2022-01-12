@@ -12,6 +12,8 @@ namespace Alvr
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
         private const float DiagonalFovAngle = 52f;
+        private const int CoefficientOfLHand = 1;
+        private const int CoefficientOfRHand = -1;
 
         private readonly Tracking _tracking = new Tracking();
         private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
@@ -65,6 +67,8 @@ namespace Alvr
                 handTracking.UpdateHandState();
                 var lCtrlState = handTracking.LCtrlState;
                 var rCtrlState = handTracking.RCtrlState;
+                var lOrientation = ConvertHandAxis(lCtrlState.Orientation, CoefficientOfLHand);
+                var rOrientation = ConvertHandAxis(rCtrlState.Orientation, CoefficientOfRHand);
                 _tracking.lCtrl = new Controller
                 {
                     buttons = lCtrlState.Buttons,
@@ -74,16 +78,16 @@ namespace Alvr
                     gripValue = lCtrlState.Grip,
                     orientation = new CQuaternion
                     {
-                        x = lCtrlState.Orientation.x,
-                        y = lCtrlState.Orientation.y,
-                        z = lCtrlState.Orientation.z,
-                        w = lCtrlState.Orientation.w
+                        x = lOrientation.x,
+                        y = lOrientation.y,
+                        z = lOrientation.z,
+                        w = lOrientation.w
                     },
                     position = new CVector3
                     {
-                        x = lCtrlState.Position.x,
-                        y = lCtrlState.Position.y,
-                        z = lCtrlState.Position.z
+                        x = lCtrlState.Position.x + _tracking.headPosePosition.x,
+                        y = lCtrlState.Position.y + _tracking.headPosePosition.y + 0.15f,
+                        z = -lCtrlState.Position.z + _tracking.headPosePosition.z
                     }
                 };
                 _tracking.rCtrl = new Controller
@@ -95,30 +99,39 @@ namespace Alvr
                     gripValue = rCtrlState.Grip,
                     orientation = new CQuaternion
                     {
-                        x = rCtrlState.Orientation.x,
-                        y = rCtrlState.Orientation.y,
-                        z = rCtrlState.Orientation.z,
-                        w = rCtrlState.Orientation.w
+                        x = rOrientation.x,
+                        y = rOrientation.y,
+                        z = rOrientation.z,
+                        w = rOrientation.w
                     },
                     position = new CVector3
                     {
-                        x = rCtrlState.Position.x,
-                        y = rCtrlState.Position.y,
-                        z = rCtrlState.Position.z
+                        x = rCtrlState.Position.x + _tracking.headPosePosition.x,
+                        y = rCtrlState.Position.y + _tracking.headPosePosition.y + 0.15f,
+                        z = -rCtrlState.Position.z + _tracking.headPosePosition.z
                     }
                 };
             }
+
             _headPoseHistory.Add(frameIndex, headPose);
             return _tracking;
         }
 
+        private static Quaternion NrealToAlvr(Quaternion rotation)
+        {
+            return Quaternion.Euler(
+                Vector3.Scale(rotation.eulerAngles, RotateDirection)
+            );
+        }
+
         private static Pose GetHeadPose()
         {
-            var headPosePosition = NRFrame.HeadPose.position;
-            var headPoseRotation = Quaternion.Euler(
-                Vector3.Scale(NRFrame.HeadPose.rotation.eulerAngles, RotateDirection)
-            );
-            return new Pose(headPosePosition, headPoseRotation);
+            return new Pose(NRFrame.HeadPose.position, NrealToAlvr(NRFrame.HeadPose.rotation));
+        }
+
+        private static Quaternion ConvertHandAxis(Quaternion rotation, int coefficientOfHand)
+        {
+            return NrealToAlvr(rotation) * Quaternion.Euler(90, coefficientOfHand * 90, 0);
         }
 
         private void OnRendered(long frameIndex)

@@ -1501,7 +1501,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alvrClient: {fileID: 644375757}
-  eyeHeight: 1.55
+  eyeHeight: 0.66
   handTracking: {fileID: 739769388}
   onRendered:
     m_PersistentCalls:

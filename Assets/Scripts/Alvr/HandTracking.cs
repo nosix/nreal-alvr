@@ -165,6 +165,9 @@ namespace Alvr
 
             var palm = state.GetJointPose(HandJointID.Palm);
 
+            ctrlState.Orientation = palm.rotation;
+            ctrlState.Position = palm.position;
+
             // Twist hand
             var palmAngleY = palm.rotation.eulerAngles.y;
             palmAngleY = (palmAngleY + 180f) % 360f; // 0 and 360 to be the same
@@ -181,8 +184,6 @@ namespace Alvr
             var middleProximal = state.GetJointPose(HandJointID.MiddleProximal);
             var middleMiddle = state.GetJointPose(HandJointID.MiddleMiddle);
 
-            ctrlState.Orientation = palm.rotation;
-            ctrlState.Position = palm.position;
             ctrlState.Buttons = MapButton(_activeButtonId);
 
             // Trigger
