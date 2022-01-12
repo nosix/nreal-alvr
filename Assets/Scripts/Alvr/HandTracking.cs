@@ -19,10 +19,10 @@ namespace Alvr
 
     public class HandTracking : MonoBehaviour
     {
-        [SerializeField] private float thresholdAngleEnableInput = 90f;
+        [SerializeField] private float thresholdAngleEnableInput = 160f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
-        [SerializeField] private float thresholdDistanceEnable2DInput = 0.03f;
-        [SerializeField] private float thresholdAngleEnable2DInput = 25f;
+        [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
+        [SerializeField] private float thresholdAngleBendThumb = 25f;
         [SerializeField] private float maxAngleForTrigger = 90f;
         [SerializeField] private float thresholdAngleForTrigger = 60f;
         [SerializeField] private float maxAngleForGrip = 90f;
@@ -210,6 +210,16 @@ namespace Alvr
                 {
                     context.CtrlState.Trigger =
                         triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
+
+                    if (context.CtrlState.Trigger > float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerTouch);
+                    }
+
+                    if (1f - context.CtrlState.Trigger < float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerClick);
+                    }
                 }
                 else
                 {
@@ -222,6 +232,16 @@ namespace Alvr
                 if (gripAngle > 0f)
                 {
                     context.CtrlState.Grip = gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
+
+                    if (context.CtrlState.Grip > float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.GripTouch);
+                    }
+
+                    if (1f - context.CtrlState.Grip < float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.GripClick);
+                    }
                 }
                 else
                 {
@@ -229,26 +249,34 @@ namespace Alvr
                 }
 
                 // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)context.CtrlState.Trigger} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)context.CtrlState.Grip} {(int)middleAngle}");
+
+                // Bend Thumb
+                var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
+                var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceBendThumb;
+
+                var thumbIndexAngle =
+                    Quaternion.Angle(thumbDistal.rotation * RotateAroundY, indexProximal.rotation);
+                var nearThumbIndexAngle = thumbIndexAngle < thresholdAngleBendThumb;
+
+                var bendThumb = nearThumbIndexPosition || nearThumbIndexAngle;
+
+                if (bendThumb)
+                {
+                    context.CtrlState.Buttons |= ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
+                }
+
+                // Debug.Log($"Bend Thumb {bendThumb} {thumbIndexDistance} {(int)thumbIndexAngle}");
             }
 
             return;
 
             // 2D Input (joystick, trackpad, etc.)
             // FIXME There are many recognition mistakes
-            var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
-            var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceEnable2DInput;
-
-            var thumbIndexAngle =
-                Quaternion.Angle(thumbDistal.rotation * RotateAroundY, indexProximal.rotation);
-            var nearThumbIndexAngle = thumbIndexAngle < thresholdAngleEnable2DInput;
-
-            var enable2DInput = nearThumbIndexPosition || nearThumbIndexAngle;
-
-            // Debug.Log($"2D Input {enable2DInput} {thumbIndexDistance} {(int)thumbIndexAngle}");
 
             context.CtrlState.Input2DPosition.x = 0f;
             context.CtrlState.Input2DPosition.y = 0f;
 
+            bool enable2DInput;
             if (enable2DInput)
             {
                 if (context.OriginOf2DInput == null)
