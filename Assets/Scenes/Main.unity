@@ -1622,7 +1622,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfcaf5df7c454d90a122b65701f6a05c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  thresholdAngleEnableInput: 90
+  thresholdAngleEnableInput: 160
   maxDistance2DInput: 0.1
   thresholdDistanceEnable2DInput: 0.03
   thresholdAngleEnable2DInput: 25
@@ -3783,12 +3783,12 @@ PrefabInstance:
     - target: {fileID: 114213534414106972, guid: ad152f08ed7eb6e4abd93376a0203e38,
         type: 3}
       propertyPath: nearDistance
-      value: -15
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114365659733525308, guid: ad152f08ed7eb6e4abd93376a0203e38,
         type: 3}
       propertyPath: nearDistance
-      value: -15
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ad152f08ed7eb6e4abd93376a0203e38, type: 3}
