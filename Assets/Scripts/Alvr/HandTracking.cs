@@ -200,36 +200,38 @@ namespace Alvr
             context.CtrlState.Buttons = MapButton(_activeButtonId);
 
             context.InputEnabled = context.PalmAngleY.Average > thresholdAngleEnableInput + NegativeAngleRange;
-            Debug.Log($"{context.InputEnabled} {context.PalmAngleY.Average}");
+
+            if (!context.InputEnabled)
+            {
+                // Trigger
+                var indexAngle = Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
+                var triggerAngle = indexAngle - thresholdAngleForTrigger;
+                if (triggerAngle > 0f)
+                {
+                    context.CtrlState.Trigger =
+                        triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
+                }
+                else
+                {
+                    context.CtrlState.Trigger = 0f;
+                }
+
+                // Grip
+                var middleAngle = Quaternion.Angle(middleProximal.rotation, middleMiddle.rotation);
+                var gripAngle = middleAngle - thresholdAngleForGrip;
+                if (gripAngle > 0f)
+                {
+                    context.CtrlState.Grip = gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
+                }
+                else
+                {
+                    context.CtrlState.Grip = 0f;
+                }
+
+                // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)context.CtrlState.Trigger} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)context.CtrlState.Grip} {(int)middleAngle}");
+            }
 
             return;
-
-            // Trigger
-            var indexAngle = Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
-            var triggerAngle = indexAngle - thresholdAngleForTrigger;
-            if (triggerAngle > 0f)
-            {
-                context.CtrlState.Trigger =
-                    triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
-            }
-            else
-            {
-                context.CtrlState.Trigger = 0f;
-            }
-
-            // Grip
-            var middleAngle = Quaternion.Angle(middleProximal.rotation, middleMiddle.rotation);
-            var gripAngle = middleAngle - thresholdAngleForGrip;
-            if (gripAngle > 0f)
-            {
-                context.CtrlState.Grip = gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
-            }
-            else
-            {
-                context.CtrlState.Grip = 0f;
-            }
-
-            // Debug.Log($"Trigger/Grip {controllerState.trigger > 0f} {(int)controllerState.trigger} {(int)indexAngle} {controllerState.grip > 0f} {(int)controllerState.grip} {(int)middleAngle}");
 
             // 2D Input (joystick, trackpad, etc.)
             // FIXME There are many recognition mistakes
