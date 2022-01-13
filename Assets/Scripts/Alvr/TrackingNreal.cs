@@ -53,7 +53,7 @@ namespace Alvr
             {
                 x = headPose.position.x,
                 y = headPose.position.y + eyeHeight,
-                z = headPose.position.z
+                z = -headPose.position.z
             };
             _tracking.headPoseOrientation = new CQuaternion
             {
@@ -87,7 +87,7 @@ namespace Alvr
                     {
                         x = lCtrlState.Position.x + _tracking.headPosePosition.x,
                         y = lCtrlState.Position.y + _tracking.headPosePosition.y + 0.15f,
-                        z = -lCtrlState.Position.z + _tracking.headPosePosition.z
+                        z = -lCtrlState.Position.z - _tracking.headPosePosition.z
                     }
                 };
                 _tracking.rCtrl = new Controller
