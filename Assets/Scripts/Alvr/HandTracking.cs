@@ -37,6 +37,9 @@ namespace Alvr
         [SerializeField] private Image rGripIndicator;
         [SerializeField] private Image rTriggerIndicator;
 
+        [SerializeField] private GameObject lHandModel;
+        [SerializeField] private GameObject rHandModel;
+
         [SerializeField] private bool debug;
 
         private static readonly Quaternion RotateFrontFacing = Quaternion.AngleAxis(0f, Vector3.up);
@@ -151,6 +154,8 @@ namespace Alvr
 
         private void Start()
         {
+            lHandModel.SetActive(debug);
+            rHandModel.SetActive(debug);
             if (debug) StartCoroutine(nameof(UpdateHandStateLoop));
         }
 
