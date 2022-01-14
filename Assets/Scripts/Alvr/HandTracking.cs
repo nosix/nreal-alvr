@@ -116,6 +116,14 @@ namespace Alvr
             rGripIndicator.material = _rGripMaterial;
             rTriggerIndicator.material = _rTriggerMaterial;
 
+            buttonPanel.SetActive(false);
+            l2DInputIndicator.enabled = false;
+            r2DInputIndicator.enabled = false;
+            lGripIndicator.enabled = false;
+            rGripIndicator.enabled = false;
+            lTriggerIndicator.enabled = false;
+            rTriggerIndicator.enabled = false;
+
             _onUpdatedCtrlState
                 .ObserveOnMainThread()
                 .Subscribe(_ => UpdateIndicators());
@@ -199,6 +207,8 @@ namespace Alvr
             context.CtrlState.Buttons = 0;
             context.CtrlState.Trigger = 0f;
             context.CtrlState.Grip = 0f;
+            context.CtrlState.Input2DPosition.x = 0f;
+            context.CtrlState.Input2DPosition.y = 0f;
 
             // Ignore the input because it is easy to detect falsely
             if (!context.InputEnabled) return;
@@ -210,67 +220,62 @@ namespace Alvr
 
             context.CtrlState.Buttons = MapButton(_activeButtonId);
 
-            // Trigger
-            var indexAngle = Quaternion.Angle(palm.rotation, indexMiddle.rotation);
-            var triggerAngle = indexAngle - thresholdAngleForTrigger;
-            if (triggerAngle > 0f)
+            if (!context.ButtonEnabled)
             {
-                context.CtrlState.Trigger =
-                    triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
-
-                if (context.CtrlState.Trigger > float.Epsilon)
+                // Trigger
+                var indexAngle = Quaternion.Angle(palm.rotation, indexMiddle.rotation);
+                var triggerAngle = indexAngle - thresholdAngleForTrigger;
+                if (triggerAngle > 0f)
                 {
-                    context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerTouch);
+                    context.CtrlState.Trigger =
+                        triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
+
+                    if (context.CtrlState.Trigger > float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerTouch);
+                    }
+
+                    if (1f - context.CtrlState.Trigger < float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerClick);
+                    }
                 }
 
-                if (1f - context.CtrlState.Trigger < float.Epsilon)
+                // Grip
+                var middleAngle = Quaternion.Angle(palm.rotation, middleMiddle.rotation);
+                var gripAngle = middleAngle - thresholdAngleForGrip;
+                if (gripAngle > 0f)
                 {
-                    context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerClick);
+                    context.CtrlState.Grip =
+                        gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
+
+                    if (context.CtrlState.Grip > float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.GripTouch);
+                    }
+
+                    if (1f - context.CtrlState.Grip < float.Epsilon)
+                    {
+                        context.CtrlState.Buttons |= ToFlag(AlvrInput.GripClick);
+                    }
                 }
+
+                // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)context.CtrlState.Trigger} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)context.CtrlState.Grip} {(int)middleAngle}");
+
+                // Bend Thumb
+                var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
+                var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceBendThumb;
+
+                if (nearThumbIndexPosition)
+                {
+                    context.CtrlState.Buttons |= ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
+                }
+
+                // Debug.Log($"Bend Thumb {nearThumbIndexPosition} {(int)(thumbIndexDistance * 100)}");
             }
-
-            // Grip
-            var middleAngle = Quaternion.Angle(palm.rotation, middleMiddle.rotation);
-            var gripAngle = middleAngle - thresholdAngleForGrip;
-            if (gripAngle > 0f)
-            {
-                context.CtrlState.Grip =
-                    gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
-
-                if (context.CtrlState.Grip > float.Epsilon)
-                {
-                    context.CtrlState.Buttons |= ToFlag(AlvrInput.GripTouch);
-                }
-
-                if (1f - context.CtrlState.Grip < float.Epsilon)
-                {
-                    context.CtrlState.Buttons |= ToFlag(AlvrInput.GripClick);
-                }
-            }
-
-            // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)context.CtrlState.Trigger} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)context.CtrlState.Grip} {(int)middleAngle}");
-
-            // Bend Thumb
-            var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
-            var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceBendThumb;
-
-            if (nearThumbIndexPosition)
-            {
-                context.CtrlState.Buttons |= ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
-            }
-
-            // Debug.Log($"Bend Thumb {nearThumbIndexPosition} {(int)(thumbIndexDistance * 100)}");
-
-            return;
 
             // 2D Input (joystick, trackpad, etc.)
-            // FIXME There are many recognition mistakes
-
-            context.CtrlState.Input2DPosition.x = 0f;
-            context.CtrlState.Input2DPosition.y = 0f;
-
-            bool enable2DInput;
-            if (enable2DInput)
+            if (context.ButtonEnabled)
             {
                 if (context.OriginOf2DInput == null)
                 {
@@ -288,7 +293,7 @@ namespace Alvr
                 context.OriginOf2DInput = null;
             }
 
-            // Debug.Log($"{controllerState.button} {controllerState.trigger} {controllerState.grip} {controllerState.input2DPosition}");
+            // Debug.Log($"{context.CtrlState.Input2DPosition} {context.OriginOf2DInput}");
         }
 
         private void UpdateIndicators()
@@ -302,6 +307,13 @@ namespace Alvr
                     buttonPanel.SetActive(false);
                     break;
             }
+
+            l2DInputIndicator.enabled = _lContext.ButtonEnabled;
+            r2DInputIndicator.enabled = _rContext.ButtonEnabled;
+            lGripIndicator.enabled = _lContext.InputEnabled;
+            rGripIndicator.enabled = _rContext.InputEnabled;
+            lTriggerIndicator.enabled = _lContext.InputEnabled;
+            rTriggerIndicator.enabled = _rContext.InputEnabled;
 
             _lGripMaterial.SetFloat(Value, _lContext.CtrlState.Grip);
             _lTriggerMaterial.SetFloat(Value, _lContext.CtrlState.Trigger);

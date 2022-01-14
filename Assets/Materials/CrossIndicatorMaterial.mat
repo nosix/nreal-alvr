@@ -117,7 +117,7 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     - pivot: 0.5
-    - size: 0.2
+    - size: 0.05
     - value: 1
     - x: 0
     - y: 0
