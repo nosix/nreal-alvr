@@ -39,6 +39,8 @@ namespace Alvr
 
         [SerializeField] private GameObject lHandModel;
         [SerializeField] private GameObject rHandModel;
+        [SerializeField] private GameObject lHandPointer;
+        [SerializeField] private GameObject rHandPointer;
 
         [SerializeField] private bool debug;
 
@@ -303,15 +305,9 @@ namespace Alvr
 
         private void UpdateIndicators()
         {
-            switch (_lContext.ButtonEnabled || _rContext.ButtonEnabled)
-            {
-                case true when !buttonPanel.activeSelf:
-                    buttonPanel.SetActive(true);
-                    break;
-                case false when buttonPanel.activeSelf:
-                    buttonPanel.SetActive(false);
-                    break;
-            }
+            buttonPanel.SetActive(_lContext.ButtonEnabled || _rContext.ButtonEnabled);
+            lHandPointer.SetActive(_rContext.ButtonEnabled);
+            rHandPointer.SetActive(_lContext.ButtonEnabled);
 
             l2DInputIndicator.enabled = _lContext.ButtonEnabled;
             r2DInputIndicator.enabled = _rContext.ButtonEnabled;

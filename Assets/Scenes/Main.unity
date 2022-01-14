@@ -780,7 +780,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &372668351
 Transform:
   m_ObjectHideFlags: 0
@@ -898,6 +898,10 @@ PrefabInstance:
     - target: {fileID: 1074428498397130, guid: 98cddc6b51ec7804bbbd0bb6384917f6, type: 3}
       propertyPath: m_Name
       value: GestureSimpleTip_L
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074428498397130, guid: 98cddc6b51ec7804bbbd0bb6384917f6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4353827911608580, guid: 98cddc6b51ec7804bbbd0bb6384917f6, type: 3}
       propertyPath: m_RootOrder
@@ -1607,6 +1611,8 @@ MonoBehaviour:
   rTriggerIndicator: {fileID: 1935918025}
   lHandModel: {fileID: 661980148}
   rHandModel: {fileID: 767705132}
+  lHandPointer: {fileID: 931171992}
+  rHandPointer: {fileID: 1990324347}
   debug: 1
 --- !u!1 &767705132
 GameObject:
@@ -1929,6 +1935,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9e73c86b401a7c34cb70b4dcaf94be65, type: 3}
+--- !u!1 &931171992 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1660479356263662, guid: 9e73c86b401a7c34cb70b4dcaf94be65,
+    type: 3}
+  m_PrefabInstance: {fileID: 931171991}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &931171993 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4261144047474834, guid: 9e73c86b401a7c34cb70b4dcaf94be65,
@@ -2135,6 +2147,10 @@ PrefabInstance:
     - target: {fileID: 1074428498397130, guid: 98cddc6b51ec7804bbbd0bb6384917f6, type: 3}
       propertyPath: m_Name
       value: GestureSimpleTip_R
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074428498397130, guid: 98cddc6b51ec7804bbbd0bb6384917f6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4353827911608580, guid: 98cddc6b51ec7804bbbd0bb6384917f6, type: 3}
       propertyPath: m_RootOrder
@@ -3072,7 +3088,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1693372002
 Transform:
   m_ObjectHideFlags: 0
@@ -3847,6 +3863,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70daf2d8f37b30d4bab087bfe4481331, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1990324347 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1274164330364456, guid: 7f0032a8f9796bb418c31cdb8c16b78e,
+    type: 3}
+  m_PrefabInstance: {fileID: 1990324344}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2084148506
 GameObject:
   m_ObjectHideFlags: 0
