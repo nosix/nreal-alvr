@@ -7,7 +7,7 @@ namespace Alvr
     public class TrackingNreal : MonoBehaviour
     {
         [SerializeField] private AlvrClient alvrClient;
-        [SerializeField] private float eyeHeight = 1.55f;
+        [SerializeField] private float eyeHeight = 0.66f;
         [SerializeField] private HandTracking handTracking;
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
@@ -17,8 +17,6 @@ namespace Alvr
 
         private readonly Tracking _tracking = new Tracking();
         private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
-
-        private static readonly Vector3 RotateDirection = new Vector3(-1f, -1f, 1f);
 
         private static CRect GetEyeFov(float diagonalFovAngle, float width, float height)
         {
@@ -117,21 +115,14 @@ namespace Alvr
             return _tracking;
         }
 
-        private static Quaternion NrealToAlvr(Quaternion rotation)
-        {
-            return Quaternion.Euler(
-                Vector3.Scale(rotation.eulerAngles, RotateDirection)
-            );
-        }
-
         private static Pose GetHeadPose()
         {
-            return new Pose(NRFrame.HeadPose.position, NrealToAlvr(NRFrame.HeadPose.rotation));
+            return new Pose(NRFrame.HeadPose.position, NRFrame.HeadPose.rotation.ToAlvr());
         }
 
         private static Quaternion ConvertHandAxis(Quaternion rotation, int coefficientOfHand)
         {
-            return NrealToAlvr(rotation) * Quaternion.Euler(90, coefficientOfHand * 90, 0);
+            return rotation * Quaternion.Euler(90, coefficientOfHand * 90, 0);
         }
 
         private void OnRendered(long frameIndex)

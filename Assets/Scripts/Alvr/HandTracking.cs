@@ -19,16 +19,14 @@ namespace Alvr
 
     public class HandTracking : MonoBehaviour
     {
-        [SerializeField] private float thresholdAngleEnableInput = 160f;
+        [SerializeField] private float thresholdAngleEnableInput = 50f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
-        [SerializeField] private float thresholdAngleBendThumb = 25f;
-        [SerializeField] private float maxAngleForTrigger = 90f;
+        [SerializeField] private float maxAngleForTrigger = 110f;
         [SerializeField] private float thresholdAngleForTrigger = 60f;
-        [SerializeField] private float maxAngleForGrip = 90f;
-        [SerializeField] private float thresholdAngleForGrip = 50f;
-        [SerializeField] private float thresholdAngleForTwist = 40f;
-        [SerializeField] private float twistAngleAverageWindowMs = 500f;
+        [SerializeField] private float maxAngleForGrip = 110f;
+        [SerializeField] private float thresholdAngleForGrip = 60f;
+        [SerializeField] private float averageWindowMs = 500f;
         [SerializeField] private int averageWindowSamples = 20;
 
         [SerializeField] private GameObject buttonPanel;
@@ -41,11 +39,11 @@ namespace Alvr
 
         [SerializeField] private bool debug;
 
-        private static readonly Quaternion RotateAroundY = Quaternion.AngleAxis(90f, Vector3.up);
+        private static readonly Quaternion RotateFrontFacing = Quaternion.AngleAxis(0f, Vector3.up);
+        private static readonly Quaternion RotateBackFacing = Quaternion.AngleAxis(180f, Vector3.up);
         private static readonly int Value = Shader.PropertyToID("value");
         private static readonly int X = Shader.PropertyToID("x");
         private static readonly int Y = Shader.PropertyToID("y");
-        private const float NegativeAngleRange = 90f;
 
         private readonly Subject<Unit> _onUpdatedCtrlState = new Subject<Unit>();
 
@@ -53,17 +51,24 @@ namespace Alvr
         {
             public IntervalTimeRecorder Interval;
             public bool InputEnabled;
-            public MovingAverage PalmAngleY;
+            public bool ButtonEnabled;
+            public MovingAverage PalmAngleWithFront;
+            public MovingAverage PalmAngleWithBack;
             public Vector3? OriginOf2DInput;
             public HandControllerState CtrlState;
 
-            public void Reset(int averageWindowSamples, float twistAngleAverageWindowMs)
+            public void Reset(int averageWindowSamples, float averageWindowMs)
             {
                 Interval = new IntervalTimeRecorder(60);
                 InputEnabled = false;
-                PalmAngleY = new MovingAverage(
+                ButtonEnabled = false;
+                PalmAngleWithFront = new MovingAverage(
                     averageWindowSamples,
-                    new DataSampleFilter(Interval, twistAngleAverageWindowMs, averageWindowSamples)
+                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
+                );
+                PalmAngleWithBack = new MovingAverage(
+                    averageWindowSamples,
+                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
                 );
                 OriginOf2DInput = null;
                 CtrlState = new HandControllerState();
@@ -87,11 +92,6 @@ namespace Alvr
 
         public HandControllerState LCtrlState => _lContext.CtrlState;
         public HandControllerState RCtrlState => _rContext.CtrlState;
-
-        private static float AbsDeltaAngle(float angle1, float angle2)
-        {
-            return Mathf.Abs(Mathf.DeltaAngle(angle1, angle2));
-        }
 
         private static float ToRatio(float value, float maxAbsValue)
         {
@@ -134,8 +134,8 @@ namespace Alvr
 
         private void OnEnable()
         {
-            _lContext.Reset(averageWindowSamples, twistAngleAverageWindowMs);
-            _rContext.Reset(averageWindowSamples, twistAngleAverageWindowMs);
+            _lContext.Reset(averageWindowSamples, averageWindowMs);
+            _rContext.Reset(averageWindowSamples, averageWindowMs);
             _angleRangeForTrigger = maxAngleForTrigger - thresholdAngleForTrigger;
             _angleRangeForGrip = maxAngleForGrip - thresholdAngleForGrip;
             _activeButtonId = -1;
@@ -174,99 +174,92 @@ namespace Alvr
         {
             if (!state.isTracked) return;
 
-            var palm = state.GetJointPose(HandJointID.Palm);
-
-            context.CtrlState.Orientation = palm.rotation;
-            context.CtrlState.Position = palm.position;
-
             context.Interval.NextTick();
 
-            // Twist hand
-            var palmAngleY = palm.rotation.eulerAngles.y;
-            palmAngleY = (palmAngleY + NegativeAngleRange) % 360f; // 0 and 360 to be the same
-            var palmAngleYAverage = context.PalmAngleY.Average;
-            var deltaAngleY = AbsDeltaAngle(palmAngleYAverage, palmAngleY);
-            context.PalmAngleY.Next(palmAngleY);
+            var headPose = NRFrame.HeadPose;
+            var inverseHeadRotation = Quaternion.Inverse(headPose.rotation.ToAlvr());
 
-            // Ignore the input because it is easy to detect falsely while twisting
-            if (deltaAngleY > thresholdAngleForTwist) return;
+            var palm = state.GetJointPose(HandJointID.Palm);
+            var palmRotation = inverseHeadRotation * palm.rotation.ToAlvr();
+            var palmAngleWithFront = Quaternion.Angle(RotateFrontFacing, palmRotation);
+            var palmAngleWithBack = Quaternion.Angle(RotateBackFacing, palmRotation);
+            context.PalmAngleWithFront.Next(palmAngleWithFront);
+            context.PalmAngleWithBack.Next(palmAngleWithBack);
+            var palmIsFacingFront = context.PalmAngleWithFront.Average < thresholdAngleEnableInput;
+            var palmIsFacingBack = context.PalmAngleWithBack.Average < thresholdAngleEnableInput;
+
+            // Debug.Log($"Palm {palmIsFacingFront} {(int)context.PalmAngleWithFront.Average} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Average}");
+
+            context.CtrlState.Orientation = palm.rotation.ToAlvr();
+            context.CtrlState.Position = palm.position;
+
+            context.InputEnabled = palmIsFacingFront || palmIsFacingBack;
+            context.ButtonEnabled = palmIsFacingBack;
+
+            context.CtrlState.Buttons = 0;
+            context.CtrlState.Trigger = 0f;
+            context.CtrlState.Grip = 0f;
+
+            // Ignore the input because it is easy to detect falsely
+            if (!context.InputEnabled) return;
 
             var thumbDistal = state.GetJointPose(HandJointID.ThumbDistal);
             var indexProximal = state.GetJointPose(HandJointID.IndexProximal);
             var indexMiddle = state.GetJointPose(HandJointID.IndexMiddle);
-            var middleProximal = state.GetJointPose(HandJointID.MiddleProximal);
             var middleMiddle = state.GetJointPose(HandJointID.MiddleMiddle);
 
             context.CtrlState.Buttons = MapButton(_activeButtonId);
 
-            context.InputEnabled = context.PalmAngleY.Average > thresholdAngleEnableInput + NegativeAngleRange;
-
-            if (!context.InputEnabled)
+            // Trigger
+            var indexAngle = Quaternion.Angle(palm.rotation, indexMiddle.rotation);
+            var triggerAngle = indexAngle - thresholdAngleForTrigger;
+            if (triggerAngle > 0f)
             {
-                // Trigger
-                var indexAngle = Quaternion.Angle(indexProximal.rotation, indexMiddle.rotation);
-                var triggerAngle = indexAngle - thresholdAngleForTrigger;
-                if (triggerAngle > 0f)
-                {
-                    context.CtrlState.Trigger =
-                        triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
+                context.CtrlState.Trigger =
+                    triggerAngle > _angleRangeForTrigger ? 1f : triggerAngle / _angleRangeForTrigger;
 
-                    if (context.CtrlState.Trigger > float.Epsilon)
-                    {
-                        context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerTouch);
-                    }
-
-                    if (1f - context.CtrlState.Trigger < float.Epsilon)
-                    {
-                        context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerClick);
-                    }
-                }
-                else
+                if (context.CtrlState.Trigger > float.Epsilon)
                 {
-                    context.CtrlState.Trigger = 0f;
+                    context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerTouch);
                 }
 
-                // Grip
-                var middleAngle = Quaternion.Angle(middleProximal.rotation, middleMiddle.rotation);
-                var gripAngle = middleAngle - thresholdAngleForGrip;
-                if (gripAngle > 0f)
+                if (1f - context.CtrlState.Trigger < float.Epsilon)
                 {
-                    context.CtrlState.Grip = gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
-
-                    if (context.CtrlState.Grip > float.Epsilon)
-                    {
-                        context.CtrlState.Buttons |= ToFlag(AlvrInput.GripTouch);
-                    }
-
-                    if (1f - context.CtrlState.Grip < float.Epsilon)
-                    {
-                        context.CtrlState.Buttons |= ToFlag(AlvrInput.GripClick);
-                    }
+                    context.CtrlState.Buttons |= ToFlag(AlvrInput.TriggerClick);
                 }
-                else
-                {
-                    context.CtrlState.Grip = 0f;
-                }
-
-                // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)context.CtrlState.Trigger} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)context.CtrlState.Grip} {(int)middleAngle}");
-
-                // Bend Thumb
-                var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
-                var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceBendThumb;
-
-                var thumbIndexAngle =
-                    Quaternion.Angle(thumbDistal.rotation * RotateAroundY, indexProximal.rotation);
-                var nearThumbIndexAngle = thumbIndexAngle < thresholdAngleBendThumb;
-
-                var bendThumb = nearThumbIndexPosition || nearThumbIndexAngle;
-
-                if (bendThumb)
-                {
-                    context.CtrlState.Buttons |= ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
-                }
-
-                // Debug.Log($"Bend Thumb {bendThumb} {thumbIndexDistance} {(int)thumbIndexAngle}");
             }
+
+            // Grip
+            var middleAngle = Quaternion.Angle(palm.rotation, middleMiddle.rotation);
+            var gripAngle = middleAngle - thresholdAngleForGrip;
+            if (gripAngle > 0f)
+            {
+                context.CtrlState.Grip =
+                    gripAngle > _angleRangeForGrip ? 1f : gripAngle / _angleRangeForGrip;
+
+                if (context.CtrlState.Grip > float.Epsilon)
+                {
+                    context.CtrlState.Buttons |= ToFlag(AlvrInput.GripTouch);
+                }
+
+                if (1f - context.CtrlState.Grip < float.Epsilon)
+                {
+                    context.CtrlState.Buttons |= ToFlag(AlvrInput.GripClick);
+                }
+            }
+
+            // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)context.CtrlState.Trigger} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)context.CtrlState.Grip} {(int)middleAngle}");
+
+            // Bend Thumb
+            var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
+            var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceBendThumb;
+
+            if (nearThumbIndexPosition)
+            {
+                context.CtrlState.Buttons |= ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
+            }
+
+            // Debug.Log($"Bend Thumb {nearThumbIndexPosition} {(int)(thumbIndexDistance * 100)}");
 
             return;
 
@@ -300,7 +293,7 @@ namespace Alvr
 
         private void UpdateIndicators()
         {
-            switch (_lContext.InputEnabled || _rContext.InputEnabled)
+            switch (_lContext.ButtonEnabled || _rContext.ButtonEnabled)
             {
                 case true when !buttonPanel.activeSelf:
                     buttonPanel.SetActive(true);
