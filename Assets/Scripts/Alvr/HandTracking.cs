@@ -208,7 +208,7 @@ namespace Alvr
             // Debug.Log($"Palm {palmIsFacingFront} {(int)context.PalmAngleWithFront.Average} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Average}");
 
             context.CtrlState.Orientation = palm.rotation.ToAlvr();
-            context.CtrlState.Position = palm.position;
+            context.CtrlState.Position = palm.position.ToAlvr();
 
             context.InputEnabled = palmIsFacingFront || palmIsFacingBack;
             context.ButtonEnabled = palmIsFacingBack;

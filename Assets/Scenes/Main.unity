@@ -1594,6 +1594,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   thresholdAngleEnableInput: 50
+  minDistance2DInput: 0.02
   maxDistance2DInput: 0.1
   thresholdDistanceBendThumb: 0.03
   maxAngleForTrigger: 110
@@ -1613,7 +1614,7 @@ MonoBehaviour:
   rHandModel: {fileID: 767705132}
   lHandPointer: {fileID: 931171992}
   rHandPointer: {fileID: 1990324347}
-  debug: 1
+  debug: 0
 --- !u!1 &767705132
 GameObject:
   m_ObjectHideFlags: 0
