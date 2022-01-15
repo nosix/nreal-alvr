@@ -347,12 +347,12 @@ namespace Alvr
                      | ToFlag(AlvrInput.JoystickLeftClick)
                      | ToFlag(AlvrInput.TrackpadTouch)
                      | ToFlag(AlvrInput.TrackpadClick),
-                1 => ToFlag(AlvrInput.ATouch) | ToFlag(AlvrInput.AClick),
-                2 => ToFlag(AlvrInput.BTouch) | ToFlag(AlvrInput.BClick),
+                1 => ToFlag(AlvrInput.XTouch) | ToFlag(AlvrInput.XClick),
+                2 => ToFlag(AlvrInput.YTouch) | ToFlag(AlvrInput.YClick),
                 3 => ToFlag(AlvrInput.ApplicationMenuClick),
                 4 => ToFlag(AlvrInput.SystemClick),
-                5 => ToFlag(AlvrInput.XTouch) | ToFlag(AlvrInput.XClick),
-                6 => ToFlag(AlvrInput.YTouch) | ToFlag(AlvrInput.YClick),
+                5 => ToFlag(AlvrInput.ATouch) | ToFlag(AlvrInput.AClick),
+                6 => ToFlag(AlvrInput.BTouch) | ToFlag(AlvrInput.BClick),
                 7 => ToFlag(AlvrInput.JoystickTouch)
                      | ToFlag(AlvrInput.JoystickClick)
                      | ToFlag(AlvrInput.JoystickRightClick)
