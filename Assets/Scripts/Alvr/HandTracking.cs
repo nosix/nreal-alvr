@@ -20,6 +20,7 @@ namespace Alvr
     public class HandTracking : MonoBehaviour
     {
         [SerializeField] private float thresholdAngleEnableInput = 50f;
+        [SerializeField] private float minDistance2DInput = 0.02f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
         [SerializeField] private float maxAngleForTrigger = 110f;
@@ -98,11 +99,12 @@ namespace Alvr
         public HandControllerState LCtrlState => _lContext.CtrlState;
         public HandControllerState RCtrlState => _rContext.CtrlState;
 
-        private static float ToRatio(float value, float maxAbsValue)
+        private static float ToRatio(float value, float minAbsValue, float maxAbsValue)
         {
             var sign = value < 0 ? -1f : 1f;
             var absValue = Mathf.Abs(value);
-            return sign * (absValue > maxAbsValue ? 1f : absValue / maxAbsValue);
+            if (absValue < minAbsValue) return 0f;
+            return sign * (absValue > maxAbsValue ? 1f : (absValue - minAbsValue) / (maxAbsValue - minAbsValue));
         }
 
         private void Awake()
@@ -291,8 +293,8 @@ namespace Alvr
                 else
                 {
                     var moved = NRFrame.HeadPose.rotation * (palm.position - (Vector3)context.OriginOf2DInput);
-                    context.CtrlState.Input2DPosition.x = ToRatio(moved.x, maxDistance2DInput);
-                    context.CtrlState.Input2DPosition.y = ToRatio(moved.y, maxDistance2DInput);
+                    context.CtrlState.Input2DPosition.x = ToRatio(moved.x, minDistance2DInput, maxDistance2DInput);
+                    context.CtrlState.Input2DPosition.y = ToRatio(moved.y, minDistance2DInput, maxDistance2DInput);
                 }
             }
             else
