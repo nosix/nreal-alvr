@@ -3488,14 +3488,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfcaf5df7c454d90a122b65701f6a05c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  thresholdAngleEnableInput: 50
+  thresholdAngleEnableInput: 60
   minDistance2DInput: 0.02
   maxDistance2DInput: 0.1
   thresholdDistanceBendThumb: 0.03
-  maxAngleForTrigger: 110
-  thresholdAngleForTrigger: 60
-  maxAngleForGrip: 110
-  thresholdAngleForGrip: 60
+  maxAngleForTrigger: 120
+  thresholdAngleForTrigger: 75
+  maxAngleForGrip: 120
+  thresholdAngleForGrip: 75
   averageWindowMs: 500
   averageWindowSamples: 20
   buttonPanel: {fileID: 565785633}

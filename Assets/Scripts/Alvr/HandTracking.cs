@@ -18,14 +18,14 @@ namespace Alvr
 
     public class HandTracking : MonoBehaviour
     {
-        [SerializeField] private float thresholdAngleEnableInput = 50f;
+        [SerializeField] private float thresholdAngleEnableInput = 60f;
         [SerializeField] private float minDistance2DInput = 0.02f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
-        [SerializeField] private float maxAngleForTrigger = 110f;
-        [SerializeField] private float thresholdAngleForTrigger = 60f;
-        [SerializeField] private float maxAngleForGrip = 110f;
-        [SerializeField] private float thresholdAngleForGrip = 60f;
+        [SerializeField] private float maxAngleForTrigger = 120f;
+        [SerializeField] private float thresholdAngleForTrigger = 75f;
+        [SerializeField] private float maxAngleForGrip = 120f;
+        [SerializeField] private float thresholdAngleForGrip = 75f;
         [SerializeField] private float averageWindowMs = 500f;
         [SerializeField] private int averageWindowSamples = 20;
 
@@ -58,6 +58,8 @@ namespace Alvr
             public bool ButtonPanelEnabled;
             public MovingAverage PalmAngleWithFront;
             public MovingAverage PalmAngleWithBack;
+            public MovingAverage IndexAngle;
+            public MovingAverage MiddleAngle;
             public Vector3? OriginOf2DInput;
             public HandControllerState CtrlState;
 
@@ -72,6 +74,14 @@ namespace Alvr
                     new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
                 );
                 PalmAngleWithBack = new MovingAverage(
+                    averageWindowSamples,
+                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
+                );
+                IndexAngle = new MovingAverage(
+                    averageWindowSamples,
+                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
+                );
+                MiddleAngle = new MovingAverage(
                     averageWindowSamples,
                     new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
                 );
@@ -227,9 +237,14 @@ namespace Alvr
 
             if (!context.ButtonPanelEnabled)
             {
+                var palmInverseRotation = Quaternion.Inverse(palm.rotation);
+
                 // Trigger
-                var indexAngle = Quaternion.Angle(palm.rotation, indexMiddle.rotation);
-                var triggerAngle = indexAngle - thresholdAngleForTrigger;
+                var indexRotation = palmInverseRotation * indexMiddle.rotation;
+                var indexAngle = (360f - indexRotation.eulerAngles.y + 90f) % 360f; // Range from 90 to 270
+                context.IndexAngle.Next(indexAngle);
+
+                var triggerAngle = context.IndexAngle.Average - 90f - thresholdAngleForTrigger;
                 if (triggerAngle > 0f)
                 {
                     context.CtrlState.Trigger =
@@ -247,8 +262,11 @@ namespace Alvr
                 }
 
                 // Grip
-                var middleAngle = Quaternion.Angle(palm.rotation, middleMiddle.rotation);
-                var gripAngle = middleAngle - thresholdAngleForGrip;
+                var middleRotation = palmInverseRotation * middleMiddle.rotation;
+                var middleAngle = (360f - middleRotation.eulerAngles.y + 90f) % 360f; // Range from 90 to 270
+                context.MiddleAngle.Next(middleAngle);
+
+                var gripAngle = context.MiddleAngle.Average - 90f - thresholdAngleForGrip;
                 if (gripAngle > 0f)
                 {
                     context.CtrlState.Grip =
@@ -265,7 +283,7 @@ namespace Alvr
                     }
                 }
 
-                // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)context.CtrlState.Trigger} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)context.CtrlState.Grip} {(int)middleAngle}");
+                // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)(context.CtrlState.Trigger * 100)} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)(context.CtrlState.Grip * 100)} {(int)middleAngle}");
 
                 // Bend Thumb
                 var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
