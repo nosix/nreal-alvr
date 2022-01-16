@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using NRKernal;
-using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -50,8 +49,6 @@ namespace Alvr
         private static readonly int Value = Shader.PropertyToID("value");
         private static readonly int X = Shader.PropertyToID("x");
         private static readonly int Y = Shader.PropertyToID("y");
-
-        private readonly Subject<Unit> _onUpdatedCtrlState = new Subject<Unit>();
 
         private struct Context
         {
@@ -133,10 +130,6 @@ namespace Alvr
             rGripIndicator.enabled = false;
             lTriggerIndicator.enabled = false;
             rTriggerIndicator.enabled = false;
-
-            _onUpdatedCtrlState
-                .ObserveOnMainThread()
-                .Subscribe(_ => UpdateIndicators());
         }
 
         private void OnDestroy()
@@ -187,7 +180,6 @@ namespace Alvr
             var rState = NRInput.Hands.GetHandState(HandEnum.RightHand);
             ScanHandState(lState, ref _lContext);
             ScanHandState(rState, ref _rContext);
-            _onUpdatedCtrlState.OnNext(Unit.Default);
         }
 
         private void ScanHandState(HandState state, ref Context context)
@@ -307,6 +299,11 @@ namespace Alvr
             }
 
             // Debug.Log($"{context.CtrlState.Input2DPosition} {context.OriginOf2DInput}");
+        }
+
+        private void Update()
+        {
+            UpdateIndicators();
         }
 
         private void UpdateIndicators()
