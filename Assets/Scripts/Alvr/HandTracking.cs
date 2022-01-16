@@ -57,7 +57,8 @@ namespace Alvr
         {
             public IntervalTimeRecorder Interval;
             public bool InputEnabled;
-            public bool ButtonEnabled;
+            public bool Input2DEnabled;
+            public bool ButtonPanelEnabled;
             public MovingAverage PalmAngleWithFront;
             public MovingAverage PalmAngleWithBack;
             public Vector3? OriginOf2DInput;
@@ -67,7 +68,8 @@ namespace Alvr
             {
                 Interval = new IntervalTimeRecorder(60);
                 InputEnabled = false;
-                ButtonEnabled = false;
+                Input2DEnabled = false;
+                ButtonPanelEnabled = false;
                 PalmAngleWithFront = new MovingAverage(
                     averageWindowSamples,
                     new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
@@ -91,6 +93,7 @@ namespace Alvr
         private Material _rGripMaterial;
         private Material _rTriggerMaterial;
 
+        private bool _buttonPanelEnabled;
         private int _activeButtonId;
 
         private Context _lContext;
@@ -211,7 +214,8 @@ namespace Alvr
             context.CtrlState.Position = palm.position.ToAlvr();
 
             context.InputEnabled = palmIsFacingFront || palmIsFacingBack;
-            context.ButtonEnabled = palmIsFacingBack;
+            context.Input2DEnabled = palmIsFacingBack;
+            context.ButtonPanelEnabled = _buttonPanelEnabled && palmIsFacingBack;
 
             context.CtrlState.Buttons = 0;
             context.CtrlState.Trigger = 0f;
@@ -229,7 +233,7 @@ namespace Alvr
 
             context.CtrlState.Buttons = MapButton(_activeButtonId);
 
-            if (!context.ButtonEnabled)
+            if (!context.ButtonPanelEnabled)
             {
                 // Trigger
                 var indexAngle = Quaternion.Angle(palm.rotation, indexMiddle.rotation);
@@ -284,7 +288,7 @@ namespace Alvr
             }
 
             // 2D Input (joystick, trackpad, etc.)
-            if (context.ButtonEnabled)
+            if (context.Input2DEnabled)
             {
                 if (context.OriginOf2DInput == null)
                 {
@@ -307,12 +311,12 @@ namespace Alvr
 
         private void UpdateIndicators()
         {
-            buttonPanel.SetActive(_lContext.ButtonEnabled || _rContext.ButtonEnabled);
-            lHandPointer.SetActive(_rContext.ButtonEnabled);
-            rHandPointer.SetActive(_lContext.ButtonEnabled);
+            buttonPanel.SetActive(_lContext.ButtonPanelEnabled || _rContext.ButtonPanelEnabled);
+            lHandPointer.SetActive(_rContext.ButtonPanelEnabled);
+            rHandPointer.SetActive(_lContext.ButtonPanelEnabled);
 
-            l2DInputIndicator.enabled = _lContext.ButtonEnabled;
-            r2DInputIndicator.enabled = _rContext.ButtonEnabled;
+            l2DInputIndicator.enabled = _lContext.Input2DEnabled;
+            r2DInputIndicator.enabled = _rContext.Input2DEnabled;
             lGripIndicator.enabled = _lContext.InputEnabled;
             rGripIndicator.enabled = _rContext.InputEnabled;
             lTriggerIndicator.enabled = _lContext.InputEnabled;
@@ -336,6 +340,11 @@ namespace Alvr
         public void ReleaseButton()
         {
             _activeButtonId = -1;
+        }
+
+        public void SetButtonPanelEnabled(bool isEnabled)
+        {
+            _buttonPanelEnabled = isEnabled;
         }
 
         private static ulong MapButton(int buttonId)

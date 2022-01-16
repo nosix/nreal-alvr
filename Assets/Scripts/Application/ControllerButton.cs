@@ -17,5 +17,10 @@ namespace Application
         {
             _controllerBridge.OnPressed(buttonId);
         }
+
+        public void OnReleased()
+        {
+            _controllerBridge.OnReleased();
+        }
     }
 }

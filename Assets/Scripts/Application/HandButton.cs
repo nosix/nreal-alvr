@@ -1,7 +1,8 @@
+using Alvr;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Alvr
+namespace Application
 {
     [RequireComponent(typeof(Image))]
     public class HandButton : MonoBehaviour
