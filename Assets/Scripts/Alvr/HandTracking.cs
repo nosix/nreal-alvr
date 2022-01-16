@@ -33,9 +33,13 @@ namespace Alvr
         [SerializeField] private Image l2DInputIndicator;
         [SerializeField] private Image lGripIndicator;
         [SerializeField] private Image lTriggerIndicator;
+        [SerializeField] private Image lInputEnabledIndicator;
+        [SerializeField] private Image lThumbPressedIndicator;
         [SerializeField] private Image r2DInputIndicator;
         [SerializeField] private Image rGripIndicator;
         [SerializeField] private Image rTriggerIndicator;
+        [SerializeField] private Image rInputEnabledIndicator;
+        [SerializeField] private Image rThumbPressedIndicator;
 
         [SerializeField] private GameObject lHandModel;
         [SerializeField] private GameObject rHandModel;
@@ -49,6 +53,8 @@ namespace Alvr
         private static readonly int Value = Shader.PropertyToID("value");
         private static readonly int X = Shader.PropertyToID("x");
         private static readonly int Y = Shader.PropertyToID("y");
+
+        private static readonly ulong FlagThumbTouch = ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
 
         private struct Context
         {
@@ -291,7 +297,7 @@ namespace Alvr
 
                 if (nearThumbIndexPosition)
                 {
-                    context.CtrlState.Buttons |= ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
+                    context.CtrlState.Buttons |= FlagThumbTouch;
                 }
 
                 // Debug.Log($"Bend Thumb {nearThumbIndexPosition} {(int)(thumbIndexDistance * 100)}");
@@ -336,6 +342,10 @@ namespace Alvr
             rGripIndicator.enabled = _rContext.InputEnabled;
             lTriggerIndicator.enabled = _lContext.InputEnabled;
             rTriggerIndicator.enabled = _rContext.InputEnabled;
+            lInputEnabledIndicator.enabled = _lContext.InputEnabled;
+            rInputEnabledIndicator.enabled = _rContext.InputEnabled;
+            lThumbPressedIndicator.enabled = (_lContext.CtrlState.Buttons & FlagThumbTouch) != 0;
+            rThumbPressedIndicator.enabled = (_rContext.CtrlState.Buttons & FlagThumbTouch) != 0;
 
             _lGripMaterial.SetFloat(Value, _lContext.CtrlState.Grip);
             _lTriggerMaterial.SetFloat(Value, _lContext.CtrlState.Trigger);
