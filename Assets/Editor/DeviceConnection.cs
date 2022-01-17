@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -11,13 +10,6 @@ namespace Editor
     {
         private const int Port = 5555;
         [CanBeNull] private static string _deviceIpAddress;
-
-        private static string GetAdbPath()
-        {
-            var applicationRoot = Path.GetDirectoryName(EditorApplication.applicationPath);
-            var adbCommand = Path.Combine(applicationRoot!, "PlaybackEngines/AndroidPlayer/SDK/platform-tools/adb");
-            return Path.GetDirectoryName(adbCommand);
-        }
 
         private static Process StartBashProcess()
         {
@@ -41,7 +33,7 @@ namespace Editor
         private static async Task<string> GetDeviceIpAddress()
         {
             var command = string.Join(" && ",
-                $@"PATH={GetAdbPath()}:$PATH",
+                Adb.SetPathEnvVar,
                 @"adb reconnect offline 1> /dev/null",
                 @"adb disconnect 1> /dev/null", // To have only one device with usb connection
                 @"adb shell ""ip -f inet -o addr show wlan0 | sed -e 's/^.*inet //' -e 's/\/.*$//'"""
@@ -88,7 +80,7 @@ namespace Editor
             Debug.Log($"Cache IP address: {_deviceIpAddress}");
 
             Run(string.Join(" && ",
-                $@"PATH={GetAdbPath()}:$PATH",
+                Adb.SetPathEnvVar,
                 $@"adb tcpip {Port}",
                 $@"adb connect {_deviceIpAddress}:{Port}",
                 $@"scrcpy -s {_deviceIpAddress}:{Port} 2>&1"
@@ -99,7 +91,7 @@ namespace Editor
         private static void Scrcpy()
         {
             Run(string.Join(" && ",
-                $@"PATH={GetAdbPath()}:$PATH",
+                Adb.SetPathEnvVar,
                 $@"scrcpy{GetOption()} 2>&1"
             ));
         }
@@ -108,7 +100,7 @@ namespace Editor
         private static void ShowDevices()
         {
             Run(string.Join(" && ",
-                $@"PATH={GetAdbPath()}:$PATH",
+                Adb.SetPathEnvVar,
                 @"adb reconnect offline",
                 @"adb devices"
             ));
@@ -118,7 +110,7 @@ namespace Editor
         private static void RebootRemoteDevice()
         {
             Run(string.Join(" && ",
-                $@"PATH={GetAdbPath()}:$PATH",
+                Adb.SetPathEnvVar,
                 $@"adb{GetOption()} shell reboot"
             ));
 
@@ -129,7 +121,7 @@ namespace Editor
         private static void ShutdownRemoteDevice()
         {
             Run(string.Join(" && ",
-                $@"PATH={GetAdbPath()}:$PATH",
+                Adb.SetPathEnvVar,
                 $@"adb{GetOption()} shell reboot -p"
             ));
 
@@ -146,7 +138,7 @@ namespace Editor
 
             var bundleIdentifier = UnityEngine.Application.identifier;
             Run(string.Join(" && ",
-                $@"PATH={GetAdbPath()}:$PATH",
+                Adb.SetPathEnvVar,
                 "adb disconnect",
                 $@"adb shell am start -n {bundleIdentifier}/com.unity3d.player.UnityPlayerActivity -e 'unity' '-deepprofiling'",
                 "scrcpy 2>&1"
