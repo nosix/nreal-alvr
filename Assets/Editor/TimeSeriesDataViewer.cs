@@ -91,6 +91,10 @@ namespace Editor
                     _isRunning = true;
                     _logcatJob = LogcatLoop(_deviceId, _dataWindowSize, _doesClearLog);
                 }
+                else
+                {
+                    Debug.Log("Already started");
+                }
             }
 
             if (GUILayout.Button("Stop"))
@@ -238,7 +242,7 @@ namespace Editor
 
             var logcatCommand = new BashCommand(string.Join(" && ",
                 Adb.SetPathEnvVar,
-                doesClearLog ? "adb -s {deviceId} logcat -c" : "true",
+                doesClearLog ? $"adb -s {deviceId} logcat -c" : "true",
                 $"adb -s {deviceId} logcat -b main -e '.*{keyword}.*'"
             ));
 
