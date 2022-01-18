@@ -261,8 +261,8 @@ namespace Editor
                     if (_timeSeries.Count == dataWindowSize) _timeSeries.Dequeue();
                     _timeSeries.Enqueue(values);
 
-                    for (var i = _minValues.Count; i < values.Length; i++) _minValues.Add(0);
-                    for (var i = _maxValues.Count; i < values.Length; i++) _maxValues.Add(0);
+                    for (var i = _minValues.Count; i < values.Length; i++) _minValues.Add(values[i]);
+                    for (var i = _maxValues.Count; i < values.Length; i++) _maxValues.Add(values[i]);
 
                     for (var i = 0; i < values.Length; i++)
                     {
