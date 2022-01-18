@@ -18,6 +18,7 @@ namespace Editor
             window.Show();
         }
 
+        private bool _doesClearLog;
         private int _dataWindowSize = 1000;
         private string _deviceId;
         private bool _isRunning;
@@ -88,7 +89,7 @@ namespace Editor
                 {
                     Debug.Log("Start monitoring");
                     _isRunning = true;
-                    _logcatJob = LogcatLoop(_deviceId, _dataWindowSize);
+                    _logcatJob = LogcatLoop(_deviceId, _dataWindowSize, _doesClearLog);
                 }
             }
 
@@ -99,6 +100,8 @@ namespace Editor
             }
 
             GUILayout.EndHorizontal();
+
+            _doesClearLog = GUILayout.Toggle(_doesClearLog, "Clear the log at the start");
 
             DrawGraph(position.size.x, 200f, 10, 10);
         }
@@ -225,7 +228,7 @@ namespace Editor
             if (_isRunning) Repaint();
         }
 
-        private async Task LogcatLoop(string deviceId, int dataWindowSize)
+        private async Task LogcatLoop(string deviceId, int dataWindowSize, bool doesClearLog)
         {
             _timeSeries = new Queue<float[]>(dataWindowSize);
             _minValues = new List<float>();
@@ -235,7 +238,7 @@ namespace Editor
 
             var logcatCommand = new BashCommand(string.Join(" && ",
                 Adb.SetPathEnvVar,
-                // "adb -s {deviceId} logcat -c",
+                doesClearLog ? "adb -s {deviceId} logcat -c" : "true",
                 $"adb -s {deviceId} logcat -b main -e '.*{keyword}.*'"
             ));
 
