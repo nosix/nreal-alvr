@@ -27,16 +27,16 @@ namespace Editor
         private List<float> _minValues;
         private List<float> _maxValues;
 
-        private void OnEnable()
+        private async void OnEnable()
         {
-            var devicesCommand = new BashCommand(string.Join(" && ",
+            using var devicesCommand = new BashCommand(string.Join(" && ",
                 Adb.SetPathEnvVar,
                 "adb devices"
             ));
 
-            devicesCommand.StartProcess();
+            await devicesCommand.StartProcess();
 
-            var errMessage = devicesCommand.StdErr.ReadToEnd();
+            var errMessage = await devicesCommand.StdErr.ReadToEndAsync();
             if (errMessage.Length != 0)
             {
                 Debug.LogError(errMessage);
@@ -44,7 +44,7 @@ namespace Editor
                 return;
             }
 
-            var adbDevicesRows = devicesCommand.StdOut.ReadToEnd()
+            var adbDevicesRows = (await devicesCommand.StdOut.ReadToEndAsync())
                 .Replace("\r\n", "\n")
                 .Split('\n', '\r');
 
@@ -240,13 +240,13 @@ namespace Editor
 
             const string keyword = "TimeSeriesData";
 
-            var logcatCommand = new BashCommand(string.Join(" && ",
+            using var logcatCommand = new BashCommand(string.Join(" && ",
                 Adb.SetPathEnvVar,
                 doesClearLog ? $"adb -s {deviceId} logcat -c" : "true",
                 $"adb -s {deviceId} logcat -b main -e '.*{keyword}.*'"
             ));
 
-            logcatCommand.StartProcess();
+            await logcatCommand.StartProcess();
 
             var delimiter = new[] { ' ' };
 
