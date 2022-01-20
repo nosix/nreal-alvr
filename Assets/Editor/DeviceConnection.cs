@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -11,44 +10,21 @@ namespace Editor
         private const int Port = 5555;
         [CanBeNull] private static string _deviceIpAddress;
 
-        private static Process StartBashProcess()
-        {
-            var process = new Process
-            {
-                StartInfo =
-                {
-                    FileName = "/bin/bash",
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                }
-            };
-            process.Start();
-
-            return process;
-        }
-
         private static async Task<string> GetDeviceIpAddress()
         {
-            var command = string.Join(" && ",
+            using var command = new BashCommand(string.Join(" && ",
                 Adb.SetPathEnvVar,
                 @"adb reconnect offline 1> /dev/null",
                 @"adb disconnect 1> /dev/null", // To have only one device with usb connection
                 @"adb shell ""ip -f inet -o addr show wlan0 | sed -e 's/^.*inet //' -e 's/\/.*$//'"""
-            );
+            ));
 
-            using var bashProcess = StartBashProcess();
+            await command.StartProcess();
 
-            var writer = bashProcess.StandardInput;
-            await writer.WriteAsync(command);
-            writer.Close();
-
-            var errOut = await bashProcess.StandardError.ReadToEndAsync();
+            var errOut = await command.StdErr.ReadToEndAsync();
             if (errOut.Length != 0) Debug.LogError(errOut);
 
-            var ipAddress = await bashProcess.StandardOutput.ReadToEndAsync();
+            var ipAddress = await command.StdOut.ReadToEndAsync();
 
             return ipAddress.Trim();
         }
@@ -60,16 +36,13 @@ namespace Editor
 
         private static async void Run(string command)
         {
-            using var bashProcess = StartBashProcess();
+            using var c = new BashCommand(command);
+            await c.StartProcess();
 
-            var writer = bashProcess.StandardInput;
-            await writer.WriteAsync(command);
-            writer.Close();
-
-            var stdOut = await bashProcess.StandardOutput.ReadToEndAsync();
+            var stdOut = await c.StdOut.ReadToEndAsync();
             if (stdOut.Length != 0) Debug.Log(stdOut);
 
-            var errOut = await bashProcess.StandardError.ReadToEndAsync();
+            var errOut = await c.StdErr.ReadToEndAsync();
             if (errOut.Length != 0) Debug.LogError(errOut);
         }
 

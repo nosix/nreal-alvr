@@ -1,10 +1,12 @@
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 
 namespace Editor
 {
-    public class BashCommand
+    public class BashCommand : IDisposable
     {
         private readonly string _command;
         private Process _process;
@@ -17,7 +19,7 @@ namespace Editor
             _command = command;
         }
 
-        public void StartProcess()
+        public async Task StartProcess()
         {
             if (_process != null)
             {
@@ -38,10 +40,12 @@ namespace Editor
                 }
             };
 
+            _process.StartInfo.EnvironmentVariables["PATH"] = "/usr/local/bin:$PATH";
+
             _process.Start();
 
             var writer = _process.StandardInput;
-            writer.WriteLine(_command);
+            await writer.WriteLineAsync(_command);
             writer.Close();
 
             StdOut = _process.StandardOutput;
@@ -57,6 +61,11 @@ namespace Editor
             StdOut = null;
             StdErr = null;
             _process = null;
+        }
+
+        public void Dispose()
+        {
+            StopProcess();
         }
     }
 }
