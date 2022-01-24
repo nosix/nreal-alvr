@@ -3650,8 +3650,12 @@ MonoBehaviour:
   thresholdAngleForTrigger: 75
   maxAngleForGrip: 120
   thresholdAngleForGrip: 75
-  averageWindowMs: 500
-  averageWindowSamples: 20
+  sigmaWForAngle: 1
+  sigmaVForAngle: 10
+  sigmaWForAxis: 0.1
+  sigmaVForAxis: 1
+  sigmaWForPosition: 0.00001
+  sigmaVForPosition: 0.0001
   buttonPanel: {fileID: 565785633}
   l2DInputIndicator: {fileID: 2117068289}
   lGripIndicator: {fileID: 1892834102}

@@ -26,8 +26,13 @@ namespace Alvr
         [SerializeField] private float thresholdAngleForTrigger = 75f;
         [SerializeField] private float maxAngleForGrip = 120f;
         [SerializeField] private float thresholdAngleForGrip = 75f;
-        [SerializeField] private float averageWindowMs = 500f;
-        [SerializeField] private int averageWindowSamples = 20;
+
+        [SerializeField] private float sigmaWForAngle = 1f;
+        [SerializeField] private float sigmaVForAngle = 10f;
+        [SerializeField] private float sigmaWForAxis = 0.1f;
+        [SerializeField] private float sigmaVForAxis = 1f;
+        [SerializeField] private float sigmaWForPosition = 1e-5f;
+        [SerializeField] private float sigmaVForPosition = 1e-4f;
 
         [SerializeField] private GameObject buttonPanel;
         [SerializeField] private Image l2DInputIndicator;
@@ -54,43 +59,50 @@ namespace Alvr
         private static readonly int X = Shader.PropertyToID("x");
         private static readonly int Y = Shader.PropertyToID("y");
 
-        private static readonly ulong FlagThumbTouch = ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
+        private static readonly ulong
+            FlagThumbTouch = ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
 
         private struct Context
         {
-            public IntervalTimeRecorder Interval;
             public bool InputEnabled;
             public bool Input2DEnabled;
             public bool ButtonPanelEnabled;
-            public MovingAverage PalmAngleWithFront;
-            public MovingAverage PalmAngleWithBack;
-            public MovingAverage IndexAngle;
-            public MovingAverage MiddleAngle;
+            public LocalLevelModelKalmanFilter PalmRotationAngle;
+            public LocalLevelModelKalmanFilter PalmRotationAxisX;
+            public LocalLevelModelKalmanFilter PalmRotationAxisY;
+            public LocalLevelModelKalmanFilter PalmRotationAxisZ;
+            public LocalLevelModelKalmanFilter PalmPositionX;
+            public LocalLevelModelKalmanFilter PalmPositionY;
+            public LocalLevelModelKalmanFilter PalmPositionZ;
+            public LocalLevelModelKalmanFilter PalmAngleWithFront;
+            public LocalLevelModelKalmanFilter PalmAngleWithBack;
+            public LocalLevelModelKalmanFilter IndexAngle;
+            public LocalLevelModelKalmanFilter MiddleAngle;
+            public LocalLevelModelKalmanFilter ThumbIndexDistance;
             public Vector3? OriginOf2DInput;
             public HandControllerState CtrlState;
 
-            public void Reset(int averageWindowSamples, float averageWindowMs)
+            public void Reset(
+                float sigmaWForAngle, float sigmaVForAngle,
+                float sigmaWForAxis, float sigmaVForAxis,
+                float sigmaWForPosition, float sigmaVForPosition
+            )
             {
-                Interval = new IntervalTimeRecorder(60);
                 InputEnabled = false;
                 Input2DEnabled = false;
                 ButtonPanelEnabled = false;
-                PalmAngleWithFront = new MovingAverage(
-                    averageWindowSamples,
-                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
-                );
-                PalmAngleWithBack = new MovingAverage(
-                    averageWindowSamples,
-                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
-                );
-                IndexAngle = new MovingAverage(
-                    averageWindowSamples,
-                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
-                );
-                MiddleAngle = new MovingAverage(
-                    averageWindowSamples,
-                    new DataSampleFilter(Interval, averageWindowMs, averageWindowSamples)
-                );
+                PalmRotationAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
+                PalmRotationAxisX = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
+                PalmRotationAxisY = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
+                PalmRotationAxisZ = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
+                PalmPositionX = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
+                PalmPositionY = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
+                PalmPositionZ = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
+                PalmAngleWithFront = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
+                PalmAngleWithBack = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
+                IndexAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
+                MiddleAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
+                ThumbIndexDistance = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
                 OriginOf2DInput = null;
                 CtrlState = new HandControllerState();
             }
@@ -161,8 +173,16 @@ namespace Alvr
 
         private void OnEnable()
         {
-            _lContext.Reset(averageWindowSamples, averageWindowMs);
-            _rContext.Reset(averageWindowSamples, averageWindowMs);
+            _lContext.Reset(
+                sigmaWForAngle, sigmaVForAngle,
+                sigmaWForAxis, sigmaVForAxis,
+                sigmaWForPosition, sigmaVForPosition
+            );
+            _rContext.Reset(
+                sigmaWForAngle, sigmaVForAngle,
+                sigmaWForAxis, sigmaVForAxis,
+                sigmaWForPosition, sigmaVForPosition
+            );
             _angleRangeForTrigger = maxAngleForTrigger - thresholdAngleForTrigger;
             _angleRangeForGrip = maxAngleForGrip - thresholdAngleForGrip;
             _activeButtonId = -1;
@@ -202,8 +222,6 @@ namespace Alvr
         {
             if (!state.isTracked) return;
 
-            context.Interval.NextTick();
-
             var headPose = NRFrame.HeadPose;
             var inverseHeadRotation = Quaternion.Inverse(headPose.rotation.ToAlvr());
 
@@ -213,13 +231,24 @@ namespace Alvr
             var palmAngleWithBack = Quaternion.Angle(RotateBackFacing, palmRotation);
             context.PalmAngleWithFront.Next(palmAngleWithFront);
             context.PalmAngleWithBack.Next(palmAngleWithBack);
-            var palmIsFacingFront = context.PalmAngleWithFront.Average < thresholdAngleEnableInput;
-            var palmIsFacingBack = context.PalmAngleWithBack.Average < thresholdAngleEnableInput;
+            var palmIsFacingFront = context.PalmAngleWithFront.Value < thresholdAngleEnableInput;
+            var palmIsFacingBack = context.PalmAngleWithBack.Value < thresholdAngleEnableInput;
 
-            // Debug.Log($"Palm {palmIsFacingFront} {(int)context.PalmAngleWithFront.Average} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Average}");
+            // Debug.Log($"Palm {palmIsFacingFront} {(int)context.PalmAngleWithFront.Value} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Value}");
 
             context.CtrlState.Orientation = palm.rotation.ToAlvr();
             context.CtrlState.Position = palm.position.ToAlvr();
+
+            context.CtrlState.Orientation.ToAngleAxis(out var angle, out var axis);
+            context.PalmRotationAngle.Update(ref angle);
+            context.PalmRotationAxisX.Update(ref axis.x);
+            context.PalmRotationAxisY.Update(ref axis.y);
+            context.PalmRotationAxisZ.Update(ref axis.z);
+            context.CtrlState.Orientation = Quaternion.AngleAxis(angle, axis);
+
+            context.PalmPositionX.Update(ref context.CtrlState.Position.x);
+            context.PalmPositionY.Update(ref context.CtrlState.Position.y);
+            context.PalmPositionZ.Update(ref context.CtrlState.Position.z);
 
             context.InputEnabled = palmIsFacingFront || palmIsFacingBack;
             context.Input2DEnabled = palmIsFacingBack;
@@ -250,7 +279,7 @@ namespace Alvr
                 var indexAngle = (360f - indexRotation.eulerAngles.y + 90f) % 360f; // Range from 90 to 270
                 context.IndexAngle.Next(indexAngle);
 
-                var triggerAngle = context.IndexAngle.Average - 90f - thresholdAngleForTrigger;
+                var triggerAngle = context.IndexAngle.Value - 90f - thresholdAngleForTrigger;
                 if (triggerAngle > 0f)
                 {
                     context.CtrlState.Trigger =
@@ -272,7 +301,7 @@ namespace Alvr
                 var middleAngle = (360f - middleRotation.eulerAngles.y + 90f) % 360f; // Range from 90 to 270
                 context.MiddleAngle.Next(middleAngle);
 
-                var gripAngle = context.MiddleAngle.Average - 90f - thresholdAngleForGrip;
+                var gripAngle = context.MiddleAngle.Value - 90f - thresholdAngleForGrip;
                 if (gripAngle > 0f)
                 {
                     context.CtrlState.Grip =
@@ -293,14 +322,15 @@ namespace Alvr
 
                 // Bend Thumb
                 var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
-                var nearThumbIndexPosition = thumbIndexDistance < thresholdDistanceBendThumb;
+                context.ThumbIndexDistance.Next(thumbIndexDistance);
+                var nearThumbIndexPosition = context.ThumbIndexDistance.Value < thresholdDistanceBendThumb;
 
                 if (nearThumbIndexPosition)
                 {
                     context.CtrlState.Buttons |= FlagThumbTouch;
                 }
 
-                // Debug.Log($"Bend Thumb {nearThumbIndexPosition} {(int)(thumbIndexDistance * 100)}");
+                // Debug.Log($"Bend Thumb {nearThumbIndexPosition} {(int)(context.ThumbIndexDistance.Value * 100)}");
             }
 
             // 2D Input (joystick, trackpad, etc.)
@@ -308,11 +338,12 @@ namespace Alvr
             {
                 if (context.OriginOf2DInput == null)
                 {
-                    context.OriginOf2DInput = palm.position;
+                    context.OriginOf2DInput = context.CtrlState.Position;
                 }
                 else
                 {
-                    var moved = NRFrame.HeadPose.rotation * (palm.position - (Vector3)context.OriginOf2DInput);
+                    var moved = NRFrame.HeadPose.rotation *
+                                (context.CtrlState.Position - (Vector3)context.OriginOf2DInput);
                     context.CtrlState.Input2DPosition.x = ToRatio(moved.x, minDistance2DInput, maxDistance2DInput);
                     context.CtrlState.Input2DPosition.y = ToRatio(moved.y, minDistance2DInput, maxDistance2DInput);
                 }
