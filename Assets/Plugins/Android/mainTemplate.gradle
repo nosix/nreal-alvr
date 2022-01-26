@@ -5,7 +5,7 @@ apply plugin: 'com.android.library'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'io.github.alvr:alvr-android-lib:0.1' // add Android plug-in
+    implementation 'io.github.alvr:alvr-android-lib:17.0.0' // add Android plug-in
 **DEPS**}
 
 android {
