@@ -13,6 +13,8 @@ namespace Alvr
         [SerializeField] private float fovRatioUpper = 50f;
         [SerializeField] private float fovRatioLower = 48f;
         [SerializeField] private float zoomRatio = 1f;
+        [SerializeField] private float handUpwardMovement = 0.2f;
+        [SerializeField] private float handForwardMovement = 0.5f;
         [SerializeField] private HandTracking handTracking;
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
@@ -22,6 +24,9 @@ namespace Alvr
 
         private readonly Tracking _tracking = new Tracking();
         private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
+
+        private Vector3 HandUpwardMovement => Vector3.up.ToAlvr() * (eyeHeight + handUpwardMovement);
+        private Vector3 HandForwardMovement => Vector3.forward.ToAlvr() * handForwardMovement;
 
         private CRect GetLEyeFov(float diagonalFovAngle, float width, float height)
         {
@@ -72,13 +77,7 @@ namespace Alvr
                 y = headPose.position.y + eyeHeight,
                 z = headPose.position.z
             };
-            _tracking.headPoseOrientation = new CQuaternion
-            {
-                x = headPose.rotation.x,
-                y = headPose.rotation.y,
-                z = headPose.rotation.z,
-                w = headPose.rotation.w
-            };
+            _tracking.headPoseOrientation = headPose.rotation.ToCStruct();
             if (handTracking != null)
             {
                 handTracking.UpdateHandState();
@@ -86,6 +85,7 @@ namespace Alvr
                 var rCtrlState = handTracking.RCtrlState;
                 var lOrientation = ConvertHandAxis(lCtrlState.Orientation, CoefficientOfLHand);
                 var rOrientation = ConvertHandAxis(rCtrlState.Orientation, CoefficientOfRHand);
+                var handOrigin = headPose.position + HandUpwardMovement + headPose.rotation * HandForwardMovement;
                 _tracking.lCtrl = new Controller
                 {
                     buttons = lCtrlState.Buttons,
@@ -93,19 +93,8 @@ namespace Alvr
                     trackpadPositionY = lCtrlState.Input2DPosition.y,
                     triggerValue = lCtrlState.Trigger,
                     gripValue = lCtrlState.Grip,
-                    orientation = new CQuaternion
-                    {
-                        x = lOrientation.x,
-                        y = lOrientation.y,
-                        z = lOrientation.z,
-                        w = lOrientation.w
-                    },
-                    position = new CVector3
-                    {
-                        x = lCtrlState.Position.x + _tracking.headPosePosition.x,
-                        y = lCtrlState.Position.y + _tracking.headPosePosition.y + 0.15f,
-                        z = lCtrlState.Position.z + _tracking.headPosePosition.z
-                    }
+                    orientation = lOrientation.ToCStruct(),
+                    position = (lCtrlState.Position + handOrigin).ToCStruct()
                 };
                 _tracking.rCtrl = new Controller
                 {
@@ -114,19 +103,8 @@ namespace Alvr
                     trackpadPositionY = rCtrlState.Input2DPosition.y,
                     triggerValue = rCtrlState.Trigger,
                     gripValue = rCtrlState.Grip,
-                    orientation = new CQuaternion
-                    {
-                        x = rOrientation.x,
-                        y = rOrientation.y,
-                        z = rOrientation.z,
-                        w = rOrientation.w
-                    },
-                    position = new CVector3
-                    {
-                        x = rCtrlState.Position.x + _tracking.headPosePosition.x,
-                        y = rCtrlState.Position.y + _tracking.headPosePosition.y + 0.15f,
-                        z = rCtrlState.Position.z + _tracking.headPosePosition.z
-                    }
+                    orientation = rOrientation.ToCStruct(),
+                    position = (rCtrlState.Position + handOrigin).ToCStruct()
                 };
             }
 

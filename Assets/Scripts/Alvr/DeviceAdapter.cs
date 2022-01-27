@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using UniRx;
+using UnityEngine;
 
 namespace Alvr
 {
@@ -124,6 +125,27 @@ namespace Alvr
         public static void OnRendered(long frameIndex)
         {
             OnRenderedSubject.OnNext(frameIndex);
+        }
+
+        public static CQuaternion ToCStruct(this Quaternion value)
+        {
+            return new CQuaternion
+            {
+                x = value.x,
+                y = value.y,
+                z = value.z,
+                w = value.w
+            };
+        }
+
+        public static CVector3 ToCStruct(this Vector3 value)
+        {
+            return new CVector3
+            {
+                x = value.x,
+                y = value.y,
+                z = value.z
+            };
         }
     }
 }
