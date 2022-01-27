@@ -220,6 +220,12 @@ namespace Alvr
 
         private void ScanHandState(HandState state, ref Context context)
         {
+            context.CtrlState.Buttons = 0;
+            context.CtrlState.Trigger = 0f;
+            context.CtrlState.Grip = 0f;
+            context.CtrlState.Input2DPosition.x = 0f;
+            context.CtrlState.Input2DPosition.y = 0f;
+
             if (!state.isTracked) return;
 
             var headPose = NRFrame.HeadPose;
@@ -253,12 +259,6 @@ namespace Alvr
             context.InputEnabled = palmIsFacingFront || palmIsFacingBack;
             context.Input2DEnabled = palmIsFacingBack;
             context.ButtonPanelEnabled = _buttonPanelEnabled && palmIsFacingBack;
-
-            context.CtrlState.Buttons = 0;
-            context.CtrlState.Trigger = 0f;
-            context.CtrlState.Grip = 0f;
-            context.CtrlState.Input2DPosition.x = 0f;
-            context.CtrlState.Input2DPosition.y = 0f;
 
             // Ignore the input because it is easy to detect falsely
             if (!context.InputEnabled) return;
