@@ -9,7 +9,7 @@ namespace Alvr
         [SerializeField] private string deviceName;
         [SerializeField] private int recommendedEyeWidth = 1920;
         [SerializeField] private int recommendedEyeHeight = 1080;
-        [Range(0.1f, 1.0f)] [SerializeField] private float eyeSizeRatio = 1.0f;
+        [SerializeField] [Range(0.1f, 1.0f)] private float eyeSizeRatio = 1.0f;
         [SerializeField] private float preferredRefreshRate = 60f;
         [SerializeField] private float[] availableRefreshRates = { 60f };
 

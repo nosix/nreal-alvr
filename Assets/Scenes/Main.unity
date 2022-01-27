@@ -3367,6 +3367,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   alvrClient: {fileID: 644375757}
   eyeHeight: 0.66
+  zoomRatio: 1
   handTracking: {fileID: 739769388}
   onRendered:
     m_PersistentCalls:

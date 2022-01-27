@@ -8,6 +8,11 @@ namespace Alvr
     {
         [SerializeField] private AlvrClient alvrClient;
         [SerializeField] private float eyeHeight = 0.66f;
+        [SerializeField] private float fovRatioInner = 45f;
+        [SerializeField] private float fovRatioOuter = 49f;
+        [SerializeField] private float fovRatioUpper = 50f;
+        [SerializeField] private float fovRatioLower = 48f;
+        [SerializeField] private float zoomRatio = 1f;
         [SerializeField] private HandTracking handTracking;
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
@@ -18,17 +23,30 @@ namespace Alvr
         private readonly Tracking _tracking = new Tracking();
         private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
 
-        private static CRect GetEyeFov(float diagonalFovAngle, float width, float height)
+        private CRect GetLEyeFov(float diagonalFovAngle, float width, float height)
         {
             var screenDiagonalAngleFromAdjacent = Mathf.Atan(height / width);
             var screenWidthAngle = Mathf.Cos(screenDiagonalAngleFromAdjacent) * diagonalFovAngle;
             var screenHeightAngle = Mathf.Sin(screenDiagonalAngleFromAdjacent) * diagonalFovAngle;
+            var hDenominator = fovRatioInner + fovRatioOuter;
+            var vDenominator = fovRatioUpper + fovRatioLower;
             return new CRect
             {
-                left = screenWidthAngle,
-                right = screenWidthAngle,
-                top = screenHeightAngle,
-                bottom = screenHeightAngle
+                left = screenWidthAngle * (fovRatioOuter / hDenominator) / zoomRatio,
+                right = screenWidthAngle * (fovRatioInner / hDenominator) / zoomRatio,
+                top = screenHeightAngle * (fovRatioUpper / vDenominator) / zoomRatio,
+                bottom = screenHeightAngle * (fovRatioLower / vDenominator) / zoomRatio
+            };
+        }
+
+        private static CRect GetREyeFov(CRect leftEyeFov)
+        {
+            return new CRect
+            {
+                left = leftEyeFov.right,
+                right = leftEyeFov.left,
+                top = leftEyeFov.top,
+                bottom = leftEyeFov.bottom
             };
         }
 
@@ -40,13 +58,14 @@ namespace Alvr
 
         private Tracking GetTracking(long frameIndex)
         {
-            var eyeFov = GetEyeFov(DiagonalFovAngle, alvrClient.EyeWidth, alvrClient.EyeHeight);
+            var lEyeFov = GetLEyeFov(DiagonalFovAngle, alvrClient.EyeWidth, alvrClient.EyeHeight);
+            var rEyeFov = GetREyeFov(lEyeFov);
             var headPose = GetHeadPose();
             _tracking.ipd = 0.068606f;
             _tracking.battery = 100;
             _tracking.plugged = 1;
-            _tracking.lEyeFov = eyeFov;
-            _tracking.rEyeFov = eyeFov;
+            _tracking.lEyeFov = lEyeFov;
+            _tracking.rEyeFov = rEyeFov;
             _tracking.headPosePosition = new CVector3
             {
                 x = headPose.position.x,
