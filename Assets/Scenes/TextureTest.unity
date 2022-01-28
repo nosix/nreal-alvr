@@ -274,12 +274,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fa42b5ba0464693822d16907b69a8c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  alvrClient: {fileID: 1560322136}
   fullScreen: 1
   width: 3840
   height: 1080
   outputImages:
   - {fileID: 604198759}
-  alvrClient: {fileID: 1560322136}
 --- !u!1 &704240414
 GameObject:
   m_ObjectHideFlags: 0
@@ -706,9 +706,9 @@ MonoBehaviour:
   recommendedEyeWidth: 1920
   recommendedEyeHeight: 1080
   eyeSizeRatio: 1
+  preferredRefreshRate: 60
   availableRefreshRates:
   - 60
-  preferredRefreshRate: 60
 --- !u!4 &1560322137
 Transform:
   m_ObjectHideFlags: 0
@@ -748,6 +748,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4ff99736cab4bc285b41571c4d219f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  alvrClient: {fileID: 1560322136}
+  ipd: 0.068606
+  eyeFov:
+    diagonalFovAngle: 52
+    fovRatioInner: 45
+    fovRatioOuter: 49
+    fovRatioUpper: 50
+    fovRatioLower: 48
+    zoomRatio: 1
 --- !u!114 &1560322140
 MonoBehaviour:
   m_ObjectHideFlags: 0
