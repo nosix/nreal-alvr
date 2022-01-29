@@ -18,7 +18,13 @@ namespace Alvr
 
     public class HandTracking : MonoBehaviour
     {
-        [SerializeField] private float thresholdAngleEnableInput = 60f;
+        [SerializeField] private SafeAngle anglePalmFacingFront = new SafeAngle
+        {
+            min = new Vector3(335f, 310f, 260f),
+            max = new Vector3(360f, 360f, 400f)
+        };
+
+        [SerializeField] private float thresholdAnglePalmFacingBack = 60f;
         [SerializeField] private float minDistance2DInput = 0.02f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
@@ -53,7 +59,6 @@ namespace Alvr
 
         [SerializeField] private bool debug;
 
-        private static readonly Quaternion RotateFrontFacing = Quaternion.AngleAxis(0f, Vector3.up);
         private static readonly Quaternion RotateBackFacing = Quaternion.AngleAxis(180f, Vector3.up);
         private static readonly int Value = Shader.PropertyToID("value");
         private static readonly int X = Shader.PropertyToID("x");
@@ -67,6 +72,8 @@ namespace Alvr
             public bool InputEnabled;
             public bool Input2DEnabled;
             public bool ButtonPanelEnabled;
+            public SafeAngle AnglePalmFacingFront;
+            public LocalLevelModelKalmanFilter PalmAngleWithBack;
             public LocalLevelModelKalmanFilter PalmRotationAngle;
             public LocalLevelModelKalmanFilter PalmRotationAxisX;
             public LocalLevelModelKalmanFilter PalmRotationAxisY;
@@ -74,8 +81,6 @@ namespace Alvr
             public LocalLevelModelKalmanFilter PalmPositionX;
             public LocalLevelModelKalmanFilter PalmPositionY;
             public LocalLevelModelKalmanFilter PalmPositionZ;
-            public LocalLevelModelKalmanFilter PalmAngleWithFront;
-            public LocalLevelModelKalmanFilter PalmAngleWithBack;
             public LocalLevelModelKalmanFilter IndexAngle;
             public LocalLevelModelKalmanFilter MiddleAngle;
             public LocalLevelModelKalmanFilter ThumbIndexDistance;
@@ -83,14 +88,18 @@ namespace Alvr
             public HandControllerState CtrlState;
 
             public void Reset(
+                SafeAngle anglePalmFacingFront,
                 float sigmaWForAngle, float sigmaVForAngle,
                 float sigmaWForAxis, float sigmaVForAxis,
                 float sigmaWForPosition, float sigmaVForPosition
             )
             {
+                anglePalmFacingFront.Reset();
                 InputEnabled = false;
                 Input2DEnabled = false;
                 ButtonPanelEnabled = false;
+                AnglePalmFacingFront = anglePalmFacingFront;
+                PalmAngleWithBack = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 PalmRotationAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 PalmRotationAxisX = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
                 PalmRotationAxisY = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
@@ -98,8 +107,6 @@ namespace Alvr
                 PalmPositionX = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
                 PalmPositionY = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
                 PalmPositionZ = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
-                PalmAngleWithFront = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
-                PalmAngleWithBack = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 IndexAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 MiddleAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 ThumbIndexDistance = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
@@ -174,11 +181,13 @@ namespace Alvr
         private void OnEnable()
         {
             _lContext.Reset(
+                anglePalmFacingFront,
                 sigmaWForAngle, sigmaVForAngle,
                 sigmaWForAxis, sigmaVForAxis,
                 sigmaWForPosition, sigmaVForPosition
             );
             _rContext.Reset(
+                anglePalmFacingFront.Mirror(),
                 sigmaWForAngle, sigmaVForAngle,
                 sigmaWForAxis, sigmaVForAxis,
                 sigmaWForPosition, sigmaVForPosition
@@ -233,14 +242,12 @@ namespace Alvr
 
             var palm = state.GetJointPose(HandJointID.Palm);
             var palmRotation = inverseHeadRotation * palm.rotation.ToAlvr();
-            var palmAngleWithFront = Quaternion.Angle(RotateFrontFacing, palmRotation);
             var palmAngleWithBack = Quaternion.Angle(RotateBackFacing, palmRotation);
-            context.PalmAngleWithFront.Next(palmAngleWithFront);
             context.PalmAngleWithBack.Next(palmAngleWithBack);
-            var palmIsFacingFront = context.PalmAngleWithFront.Value < thresholdAngleEnableInput;
-            var palmIsFacingBack = context.PalmAngleWithBack.Value < thresholdAngleEnableInput;
+            var palmIsFacingBack = context.PalmAngleWithBack.Value < thresholdAnglePalmFacingBack;
+            var palmIsFacingFront = context.AnglePalmFacingFront.Contains(palmRotation.eulerAngles);
 
-            // Debug.Log($"Palm {palmIsFacingFront} {(int)context.PalmAngleWithFront.Value} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Value}");
+            // Debug.Log($"Palm {palmIsFacingFront} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Value}");
 
             context.CtrlState.Orientation = palm.rotation.ToAlvr();
             context.CtrlState.Position = palm.position.ToAlvr();
