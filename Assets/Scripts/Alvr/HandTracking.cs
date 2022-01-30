@@ -219,11 +219,11 @@ namespace Alvr
 
         private void ScanHandState(HandState state, ref Context context)
         {
-            context.CtrlState.Buttons = 0;
             context.CtrlState.Trigger = 0f;
             context.CtrlState.Grip = 0f;
             context.CtrlState.Input2DPosition.x = 0f;
             context.CtrlState.Input2DPosition.y = 0f;
+            context.CtrlState.Buttons = MapButton(_activeButtonId);
 
             if (!state.isTracked) return;
 
@@ -266,8 +266,6 @@ namespace Alvr
             var thumbTop = state.GetJointPose(HandJointID.ThumbTip);
             var indexMiddle = state.GetJointPose(HandJointID.IndexMiddle);
             var middleMiddle = state.GetJointPose(HandJointID.MiddleMiddle);
-
-            context.CtrlState.Buttons = MapButton(_activeButtonId);
 
             if (!context.ButtonPanelEnabled)
             {
