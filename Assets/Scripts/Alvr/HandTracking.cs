@@ -20,8 +20,8 @@ namespace Alvr
     {
         [SerializeField] private SafeAngle anglePalmFacingFront = new SafeAngle
         {
-            min = new Vector3(335f, 310f, 260f),
-            max = new Vector3(360f, 360f, 400f)
+            min = new Vector3(340f, 310f, 260f),
+            max = new Vector3(370f, 370f, 400f)
         };
 
         [SerializeField] private float thresholdAnglePalmFacingBack = 60f;
@@ -29,9 +29,9 @@ namespace Alvr
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
         [SerializeField] private float maxAngleForTrigger = 120f;
-        [SerializeField] private float thresholdAngleForTrigger = 75f;
+        [SerializeField] private float thresholdAngleForTrigger = 80f;
         [SerializeField] private float maxAngleForGrip = 120f;
-        [SerializeField] private float thresholdAngleForGrip = 75f;
+        [SerializeField] private float thresholdAngleForGrip = 80f;
 
         [SerializeField] private float sigmaWForAngle = 1f;
         [SerializeField] private float sigmaVForAngle = 10f;
