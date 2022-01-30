@@ -108,21 +108,23 @@ namespace Editor
         [MenuItem("NRSDK/RebootDevice", false, 1)]
         private static async void RebootDevice()
         {
-            var result = Run(string.Join(" && ",
+            Debug.Log("Reboot device");
+            var result = await Run(string.Join(" && ",
                 Adb.SetPathEnvVar,
                 $@"adb{await GetOption()} shell reboot"
             ));
-            Debug.Log(await result);
+            Debug.Log(result.Length != 0 ? result : "Please wait because it is restarting...");
         }
 
         [MenuItem("NRSDK/ShutdownDevice", false, 1)]
         private static async void ShutdownDevice()
         {
-            var result = Run(string.Join(" && ",
+            Debug.Log("Shutdown device");
+            var result = await Run(string.Join(" && ",
                 Adb.SetPathEnvVar,
                 $@"adb{await GetOption()} shell reboot -p"
             ));
-            Debug.Log(await result);
+            if (result.Length != 0) Debug.Log(result);
         }
 
         [MenuItem("NRSDK/StartAppWithDeepProfile", false, 1)]
