@@ -25,6 +25,7 @@ namespace Alvr
         };
 
         [SerializeField] private float thresholdAnglePalmFacingBack = 60f;
+        [SerializeField] private float thresholdDistanceEnableTracking = 0.3f;
         [SerializeField] private float minDistance2DInput = 0.02f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
@@ -241,13 +242,21 @@ namespace Alvr
             var inverseHeadRotation = Quaternion.Inverse(headPose.rotation.ToAlvr());
 
             var palm = state.GetJointPose(HandJointID.Palm);
-            var palmRotation = inverseHeadRotation * palm.rotation.ToAlvr();
-            var palmAngleWithBack = Quaternion.Angle(RotateBackFacing, palmRotation);
-            context.PalmAngleWithBack.Next(palmAngleWithBack);
-            var palmIsFacingBack = context.PalmAngleWithBack.Value < thresholdAnglePalmFacingBack;
-            var palmIsFacingFront = context.AnglePalmFacingFront.Contains(palmRotation.eulerAngles);
+            var yDistance = Mathf.Abs(headPose.position.y -  palm.position.y);
 
-            // Debug.Log($"Palm {palmIsFacingFront} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Value}");
+            var palmIsFacingBack = false;
+            var palmIsFacingFront = false;
+
+            if (yDistance < thresholdDistanceEnableTracking)
+            {
+                var palmRotation = inverseHeadRotation * palm.rotation.ToAlvr();
+                var palmAngleWithBack = Quaternion.Angle(RotateBackFacing, palmRotation);
+                context.PalmAngleWithBack.Next(palmAngleWithBack);
+                palmIsFacingBack = context.PalmAngleWithBack.Value < thresholdAnglePalmFacingBack;
+                palmIsFacingFront = context.AnglePalmFacingFront.Contains(palmRotation.eulerAngles);
+            }
+
+            // Debug.Log($"Palm {(int)(yDistance * 100)} {palmIsFacingFront} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Value}");
 
             context.CtrlState.Orientation = palm.rotation.ToAlvr();
             context.CtrlState.Position = palm.position.ToAlvr();
