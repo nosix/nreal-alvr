@@ -20,7 +20,7 @@ namespace Alvr
     {
         [SerializeField] private SafeAngle anglePalmFacingFront = new SafeAngle
         {
-            min = new Vector3(340f, 310f, 260f),
+            min = new Vector3(340f, 300f, 260f),
             max = new Vector3(370f, 370f, 400f)
         };
 
