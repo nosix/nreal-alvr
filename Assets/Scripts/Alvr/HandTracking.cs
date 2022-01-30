@@ -20,7 +20,7 @@ namespace Alvr
     {
         [SerializeField] private SafeAngle anglePalmFacingFront = new SafeAngle
         {
-            min = new Vector3(340f, 300f, 260f),
+            min = new Vector3(330f, 300f, 260f),
             max = new Vector3(370f, 370f, 400f)
         };
 
@@ -36,8 +36,6 @@ namespace Alvr
 
         [SerializeField] private float sigmaWForAngle = 1f;
         [SerializeField] private float sigmaVForAngle = 10f;
-        [SerializeField] private float sigmaWForAxis = 0.1f;
-        [SerializeField] private float sigmaVForAxis = 1f;
         [SerializeField] private float sigmaWForPosition = 1e-5f;
         [SerializeField] private float sigmaVForPosition = 1e-4f;
 
@@ -75,10 +73,7 @@ namespace Alvr
             public bool ButtonPanelEnabled;
             public SafeAngle AnglePalmFacingFront;
             public LocalLevelModelKalmanFilter PalmAngleWithBack;
-            public LocalLevelModelKalmanFilter PalmRotationAngle;
-            public LocalLevelModelKalmanFilter PalmRotationAxisX;
-            public LocalLevelModelKalmanFilter PalmRotationAxisY;
-            public LocalLevelModelKalmanFilter PalmRotationAxisZ;
+            public QuaternionKalmanFilter PalmRotation;
             public LocalLevelModelKalmanFilter PalmPositionX;
             public LocalLevelModelKalmanFilter PalmPositionY;
             public LocalLevelModelKalmanFilter PalmPositionZ;
@@ -91,7 +86,6 @@ namespace Alvr
             public void Reset(
                 SafeAngle anglePalmFacingFront,
                 float sigmaWForAngle, float sigmaVForAngle,
-                float sigmaWForAxis, float sigmaVForAxis,
                 float sigmaWForPosition, float sigmaVForPosition
             )
             {
@@ -101,10 +95,7 @@ namespace Alvr
                 ButtonPanelEnabled = false;
                 AnglePalmFacingFront = anglePalmFacingFront;
                 PalmAngleWithBack = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
-                PalmRotationAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
-                PalmRotationAxisX = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
-                PalmRotationAxisY = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
-                PalmRotationAxisZ = new LocalLevelModelKalmanFilter(sigmaWForAxis, sigmaVForAxis);
+                PalmRotation = new QuaternionKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 PalmPositionX = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
                 PalmPositionY = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
                 PalmPositionZ = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
@@ -184,13 +175,11 @@ namespace Alvr
             _lContext.Reset(
                 anglePalmFacingFront,
                 sigmaWForAngle, sigmaVForAngle,
-                sigmaWForAxis, sigmaVForAxis,
                 sigmaWForPosition, sigmaVForPosition
             );
             _rContext.Reset(
                 anglePalmFacingFront.Mirror(),
                 sigmaWForAngle, sigmaVForAngle,
-                sigmaWForAxis, sigmaVForAxis,
                 sigmaWForPosition, sigmaVForPosition
             );
             _angleRangeForTrigger = maxAngleForTrigger - thresholdAngleForTrigger;
@@ -261,13 +250,7 @@ namespace Alvr
             context.CtrlState.Orientation = palm.rotation.ToAlvr();
             context.CtrlState.Position = palm.position.ToAlvr();
 
-            context.CtrlState.Orientation.ToAngleAxis(out var angle, out var axis);
-            context.PalmRotationAngle.Update(ref angle);
-            context.PalmRotationAxisX.Update(ref axis.x);
-            context.PalmRotationAxisY.Update(ref axis.y);
-            context.PalmRotationAxisZ.Update(ref axis.z);
-            context.CtrlState.Orientation = Quaternion.AngleAxis(angle, axis);
-
+            context.PalmRotation.Update(ref context.CtrlState.Orientation);
             context.PalmPositionX.Update(ref context.CtrlState.Position.x);
             context.PalmPositionY.Update(ref context.CtrlState.Position.y);
             context.PalmPositionZ.Update(ref context.CtrlState.Position.z);

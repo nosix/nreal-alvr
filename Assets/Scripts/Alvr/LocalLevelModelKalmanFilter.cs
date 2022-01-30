@@ -22,12 +22,12 @@ namespace Alvr
             Value = value0;
         }
 
-        public float Next(float y)
+        public float Next(float observed)
         {
             _p += _sigmaW;
 
             var gain = _p / (_p + _sigmaV);
-            Value += gain * (y - Value);
+            Value += gain * (observed - Value);
             _p *= 1 - gain;
 
             return Value;

@@ -3650,13 +3650,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anglePalmFacingFront:
-    min: {x: 340, y: 300, z: 260}
+    min: {x: 330, y: 300, z: 260}
     max: {x: 370, y: 370, z: 400}
   thresholdAnglePalmFacingBack: 60
   thresholdDistanceEnableTracking: 0.3
   minDistance2DInput: 0.02
   maxDistance2DInput: 0.1
-  thresholdDistanceBendThumb: 0.03
+  thresholdAngleBendThumb: 30
   maxAngleForTrigger: 120
   thresholdAngleForTrigger: 80
   maxAngleForGrip: 120
