@@ -28,7 +28,7 @@ namespace Alvr
         [SerializeField] private float thresholdDistanceEnableTracking = 0.3f;
         [SerializeField] private float minDistance2DInput = 0.02f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
-        [SerializeField] private float thresholdDistanceBendThumb = 0.03f;
+        [SerializeField] private float thresholdAngleBendThumb = 30f;
         [SerializeField] private float maxAngleForTrigger = 120f;
         [SerializeField] private float thresholdAngleForTrigger = 80f;
         [SerializeField] private float maxAngleForGrip = 120f;
@@ -84,7 +84,7 @@ namespace Alvr
             public LocalLevelModelKalmanFilter PalmPositionZ;
             public LocalLevelModelKalmanFilter IndexAngle;
             public LocalLevelModelKalmanFilter MiddleAngle;
-            public LocalLevelModelKalmanFilter ThumbIndexDistance;
+            public LocalLevelModelKalmanFilter ThumbAngle;
             public Vector3? OriginOf2DInput;
             public HandControllerState CtrlState;
 
@@ -110,7 +110,7 @@ namespace Alvr
                 PalmPositionZ = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
                 IndexAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 MiddleAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
-                ThumbIndexDistance = new LocalLevelModelKalmanFilter(sigmaWForPosition, sigmaVForPosition);
+                ThumbAngle = new LocalLevelModelKalmanFilter(sigmaWForAngle, sigmaVForAngle);
                 OriginOf2DInput = null;
                 CtrlState = new HandControllerState();
             }
@@ -279,8 +279,8 @@ namespace Alvr
             // Ignore the input because it is easy to detect falsely
             if (!context.InputEnabled) return;
 
-            var thumbDistal = state.GetJointPose(HandJointID.ThumbDistal);
-            var indexProximal = state.GetJointPose(HandJointID.IndexProximal);
+            var thumbMetacarpal = state.GetJointPose(HandJointID.ThumbMetacarpal);
+            var thumbTop = state.GetJointPose(HandJointID.ThumbTip);
             var indexMiddle = state.GetJointPose(HandJointID.IndexMiddle);
             var middleMiddle = state.GetJointPose(HandJointID.MiddleMiddle);
 
@@ -337,16 +337,14 @@ namespace Alvr
                 // Debug.Log($"Trigger/Grip {context.CtrlState.Trigger > 0f} {(int)(context.CtrlState.Trigger * 100)} {(int)indexAngle} {context.CtrlState.Grip > 0f} {(int)(context.CtrlState.Grip * 100)} {(int)middleAngle}");
 
                 // Bend Thumb
-                var thumbIndexDistance = Vector3.Distance(thumbDistal.position, indexProximal.position);
-                context.ThumbIndexDistance.Next(thumbIndexDistance);
-                var nearThumbIndexPosition = context.ThumbIndexDistance.Value < thresholdDistanceBendThumb;
-
-                if (nearThumbIndexPosition)
+                var thumbAngle = Quaternion.Angle(thumbMetacarpal.rotation, thumbTop.rotation);
+                context.ThumbAngle.Next(thumbAngle);
+                if (context.ThumbAngle.Value > thresholdAngleBendThumb)
                 {
                     context.CtrlState.Buttons |= FlagThumbTouch;
                 }
 
-                // Debug.Log($"Bend Thumb {nearThumbIndexPosition} {(int)(context.ThumbIndexDistance.Value * 100)}");
+                // Debug.Log($"Bend Thumb {(int)thumbAngle}");
             }
 
             // 2D Input (joystick, trackpad, etc.)
