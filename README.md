@@ -13,6 +13,9 @@
   - dependency is written in Packages/manifest.json
 - ALVR Android library (Experimental)
   - [ALVR in my repository](https://github.com/nosix/ALVR/tree/android-lib-no-ovr)
+    - Change client version to `17.0.0`
+      - Edit package version in `alvr/common/Cargo.toml`
+      - It may be possible to specify it at build time. ([cargo #6583](https://github.com/rust-lang/cargo/issues/6583))
     - It can be used by publishing to local maven repository in advance.
       ```
       cd alvr/experiments/android-lib-no-ovr
