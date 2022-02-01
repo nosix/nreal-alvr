@@ -6,9 +6,9 @@
 
 # Requirements for build
 
-- NRSDK 1.7.0
-  - [NRSDKForUnityAndroid_1.7.0.unitypackage](https://developer.nreal.ai/download)
-  - [Quickstart for Android](https://nrealsdkdoc.readthedocs.io/en/v1.7.0/Docs/Unity_EN/Develop/Quickstart%20for%20Android.html)
+- NRSDK 1.8.0
+  - [NRSDKForUnityAndroid_1.8.0.unitypackage](https://developer.nreal.ai/download)
+  - [Quickstart for Android](https://nreal.gitbook.io/nrsdk-documentation/discover/quickstart-for-android)
 - UniRx 7.1.0
   - dependency is written in Packages/manifest.json
 - ALVR Android library (Experimental)
