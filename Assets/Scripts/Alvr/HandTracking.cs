@@ -59,6 +59,12 @@ namespace Alvr
 
         [SerializeField] private bool debug;
 
+        private enum HandCoefficient
+        {
+            Left = 1,
+            Right = -1
+        }
+
         private static readonly Quaternion RotateBackFacing = Quaternion.AngleAxis(180f, Vector3.up);
         private static readonly int Value = Shader.PropertyToID("value");
         private static readonly int X = Shader.PropertyToID("x");
@@ -129,6 +135,7 @@ namespace Alvr
 
         private struct Context
         {
+            public HandCoefficient Coefficient;
             public ulong[] ButtonMap;
             public bool InputEnabled;
             public bool Input2DEnabled;
@@ -146,6 +153,7 @@ namespace Alvr
             public HandControllerState CtrlState;
 
             public void Reset(
+                HandCoefficient coefficient,
                 ulong[] buttonMap,
                 SafeAngle anglePalmFacingFront,
                 float sigmaWForAngle, float sigmaVForAngle,
@@ -153,6 +161,7 @@ namespace Alvr
             )
             {
                 anglePalmFacingFront.Reset();
+                Coefficient = coefficient;
                 ButtonMap = buttonMap;
                 InputEnabled = false;
                 Input2DEnabled = false;
@@ -173,6 +182,7 @@ namespace Alvr
 
         private float _angleRangeForTrigger;
         private float _angleRangeForGrip;
+        private Vector3 _additionalPalmRotation;
 
         private Material _l2DInputMaterial;
         private Material _lGripMaterial;
@@ -237,12 +247,14 @@ namespace Alvr
         private void OnEnable()
         {
             _lContext.Reset(
+                HandCoefficient.Left,
                 LButtonMap,
                 anglePalmFacingFront,
                 sigmaWForAngle, sigmaVForAngle,
                 sigmaWForPosition, sigmaVForPosition
             );
             _rContext.Reset(
+                HandCoefficient.Right,
                 RButtonMap,
                 anglePalmFacingFront.Mirror(),
                 sigmaWForAngle, sigmaVForAngle,
@@ -313,7 +325,7 @@ namespace Alvr
 
             // Debug.Log($"Palm {(int)(yDistance * 100)} {palmIsFacingFront} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Value}");
 
-            context.CtrlState.Orientation = palm.rotation.ToAlvr();
+            context.CtrlState.Orientation = ConvertHandAxis(palm.rotation.ToAlvr(), context.Coefficient);
             context.CtrlState.Position = palm.position.ToAlvr();
 
             context.PalmRotation.Update(ref context.CtrlState.Orientation);
@@ -462,6 +474,30 @@ namespace Alvr
         public void SetButtonPanelEnabled(bool isEnabled)
         {
             _buttonPanelEnabled = isEnabled;
+        }
+
+        public void SetAdditionalPalmRotationX(float value)
+        {
+            _additionalPalmRotation.x = value;
+        }
+
+        public void SetAdditionalPalmRotationY(float value)
+        {
+            _additionalPalmRotation.y = value;
+        }
+
+        public void SetAdditionalPalmRotationZ(float value)
+        {
+            _additionalPalmRotation.z = value;
+        }
+
+        private Quaternion ConvertHandAxis(Quaternion rotation, HandCoefficient c)
+        {
+            return rotation * Quaternion.Euler(
+                90 + _additionalPalmRotation.x,
+                (int)c * (90 + _additionalPalmRotation.y),
+                (int)c * _additionalPalmRotation.z
+            );
         }
 
         private static ulong MapButton(uint activeButtonFlags, IEnumerable<ulong> buttonMap)

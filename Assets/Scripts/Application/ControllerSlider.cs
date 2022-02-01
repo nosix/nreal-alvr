@@ -4,9 +4,9 @@ using UnityEngine.UI;
 namespace Application
 {
     [RequireComponent(typeof(Slider))]
-    public class Switch : MonoBehaviour
+    public class ControllerSlider : MonoBehaviour
     {
-        [SerializeField] private int switchId;
+        [SerializeField] private int sliderId;
 
         private Slider _slider;
         private ControllerBridge _controllerBridge;
@@ -19,7 +19,7 @@ namespace Application
 
         public void OnChanged()
         {
-            _controllerBridge.OnChanged(switchId, _slider.value > 0.5f);
+            _controllerBridge.OnChanged(sliderId, _slider.value);
         }
     }
 }

@@ -17,12 +17,21 @@ namespace Application
             handTracking.ReleaseButton(buttonId);
         }
 
-        public void OnChanged(int switchId, bool isOn)
+        public void OnChanged(int sliderId, float value)
         {
-            switch (switchId)
+            switch (sliderId)
             {
                 case 1:
-                    handTracking.SetButtonPanelEnabled(isOn);
+                    handTracking.SetButtonPanelEnabled(value > 0.5f);
+                    break;
+                case 2:
+                    handTracking.SetAdditionalPalmRotationX(value);
+                    break;
+                case 3:
+                    handTracking.SetAdditionalPalmRotationY(value);
+                    break;
+                case 4:
+                    handTracking.SetAdditionalPalmRotationZ(value);
                     break;
             }
         }

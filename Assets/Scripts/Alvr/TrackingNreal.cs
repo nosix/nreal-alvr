@@ -19,8 +19,6 @@ namespace Alvr
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
         private const float DiagonalFovAngle = 52f;
-        private const int CoefficientOfLHand = 1;
-        private const int CoefficientOfRHand = -1;
 
         private readonly Tracking _tracking = new Tracking();
         private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
@@ -83,8 +81,6 @@ namespace Alvr
                 handTracking.UpdateHandState();
                 var lCtrlState = handTracking.LCtrlState;
                 var rCtrlState = handTracking.RCtrlState;
-                var lOrientation = ConvertHandAxis(lCtrlState.Orientation, CoefficientOfLHand);
-                var rOrientation = ConvertHandAxis(rCtrlState.Orientation, CoefficientOfRHand);
                 var handOrigin = headPose.position + HandUpwardMovement + headPose.rotation * HandForwardMovement;
                 _tracking.lCtrl = new Controller
                 {
@@ -93,7 +89,7 @@ namespace Alvr
                     trackpadPositionY = lCtrlState.Input2DPosition.y,
                     triggerValue = lCtrlState.Trigger,
                     gripValue = lCtrlState.Grip,
-                    orientation = lOrientation.ToCStruct(),
+                    orientation = lCtrlState.Orientation.ToCStruct(),
                     position = (lCtrlState.Position + handOrigin).ToCStruct()
                 };
                 _tracking.rCtrl = new Controller
@@ -103,7 +99,7 @@ namespace Alvr
                     trackpadPositionY = rCtrlState.Input2DPosition.y,
                     triggerValue = rCtrlState.Trigger,
                     gripValue = rCtrlState.Grip,
-                    orientation = rOrientation.ToCStruct(),
+                    orientation = rCtrlState.Orientation.ToCStruct(),
                     position = (rCtrlState.Position + handOrigin).ToCStruct()
                 };
             }
@@ -115,11 +111,6 @@ namespace Alvr
         private static Pose GetHeadPose()
         {
             return new Pose(NRFrame.HeadPose.position.ToAlvr(), NRFrame.HeadPose.rotation.ToAlvr());
-        }
-
-        private static Quaternion ConvertHandAxis(Quaternion rotation, int coefficientOfHand)
-        {
-            return rotation * Quaternion.Euler(90, coefficientOfHand * 90, 0);
         }
 
         private void OnRendered(long frameIndex)
