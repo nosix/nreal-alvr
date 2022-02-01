@@ -494,8 +494,8 @@ namespace Alvr
         private Quaternion ConvertHandAxis(Quaternion rotation, HandCoefficient c)
         {
             return rotation * Quaternion.Euler(
-                90 + _additionalPalmRotation.x,
-                (int)c * (90 + _additionalPalmRotation.y),
+                _additionalPalmRotation.x,
+                (int)c * _additionalPalmRotation.y,
                 (int)c * _additionalPalmRotation.z
             );
         }

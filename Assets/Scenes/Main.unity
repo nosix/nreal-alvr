@@ -4244,6 +4244,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: RotationSliderX
       objectReference: {fileID: 0}
+    - target: {fileID: 7245874677203947660, guid: 4a5ef104bb00a4dc09fa454e4909771d,
+        type: 3}
+      propertyPath: m_Value
+      value: 90
+      objectReference: {fileID: 0}
     - target: {fileID: 7245874677203947661, guid: 4a5ef104bb00a4dc09fa454e4909771d,
         type: 3}
       propertyPath: m_Pivot.x
@@ -5499,6 +5504,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: RotationSliderY
+      objectReference: {fileID: 0}
+    - target: {fileID: 7245874677203947660, guid: 4a5ef104bb00a4dc09fa454e4909771d,
+        type: 3}
+      propertyPath: m_Value
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 7245874677203947661, guid: 4a5ef104bb00a4dc09fa454e4909771d,
         type: 3}
