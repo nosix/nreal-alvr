@@ -10,16 +10,32 @@ namespace Application
 
         private Slider _slider;
         private ControllerBridge _controllerBridge;
+        private float _defaultValue;
+        private float _cacheValue;
 
         private void Awake()
         {
             _slider = GetComponent<Slider>();
             _controllerBridge = GetComponentInParent<ControllerBridge>();
+            _defaultValue = _slider.value;
         }
 
         public void OnChanged()
         {
             _controllerBridge.OnChanged(sliderId, _slider.value);
+        }
+
+        public void Restore(bool cache)
+        {
+            if (cache)
+            {
+                _cacheValue = _slider.value;
+                _slider.value = _defaultValue;
+            }
+            else
+            {
+                _slider.value = _cacheValue;
+            }
         }
     }
 }
