@@ -29,7 +29,7 @@ namespace Application
         public void ReleaseButton()
         {
             _image.color = defaultColor;
-            handTracking.ReleaseButton();
+            handTracking.ReleaseButton(buttonId);
         }
     }
 }

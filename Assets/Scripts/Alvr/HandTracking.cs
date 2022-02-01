@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NRKernal;
 using UnityEngine;
@@ -66,8 +67,69 @@ namespace Alvr
         private static readonly ulong
             FlagThumbTouch = ToFlag(AlvrInput.JoystickTouch) | ToFlag(AlvrInput.TrackpadTouch);
 
+        private static readonly ulong[] LButtonMap =
+        {
+            // 0 (L Joystick Click)
+            ToFlag(AlvrInput.JoystickLeftClick)
+            | ToFlag(AlvrInput.JoystickClick)
+            | ToFlag(AlvrInput.TrackpadClick),
+            // 1 (R Joystick Click)
+            0,
+            // 2 (L Trigger Click)
+            ToFlag(AlvrInput.TriggerClick),
+            // 3 (R Trigger Click)
+            0,
+            // 4 (L Grip Click)
+            ToFlag(AlvrInput.GripClick),
+            // 5 (R Grip Click)
+            0,
+            // 6 (L X Click)
+            ToFlag(AlvrInput.XClick),
+            // 7 (R A Click)
+            ToFlag(AlvrInput.AClick),
+            // 8 (L Y Click)
+            ToFlag(AlvrInput.YClick),
+            // 9 (R B Click)
+            ToFlag(AlvrInput.BClick),
+            // 10 (L Application Menu Click)
+            ToFlag(AlvrInput.ApplicationMenuClick),
+            // 11 (R System Click)
+            ToFlag(AlvrInput.SystemClick)
+        };
+
+        private static readonly ulong[] RButtonMap =
+        {
+            // 0 (L Joystick Click)
+            0,
+            // 1 (R Joystick Click)
+            ToFlag(AlvrInput.JoystickRightClick)
+            | ToFlag(AlvrInput.JoystickClick)
+            | ToFlag(AlvrInput.TrackpadClick),
+            // 2 (L Trigger Click)
+            0,
+            // 3 (R Trigger Click)
+            ToFlag(AlvrInput.TriggerClick),
+            // 4 (L Grip Click)
+            0,
+            // 5 (R Grip Click)
+            ToFlag(AlvrInput.GripClick),
+            // 6 (L X Click)
+            ToFlag(AlvrInput.XClick),
+            // 7 (R A Click)
+            ToFlag(AlvrInput.AClick),
+            // 8 (L Y Click)
+            ToFlag(AlvrInput.YClick),
+            // 9 (R B Click)
+            ToFlag(AlvrInput.BClick),
+            // 10 (L Application Menu Click)
+            ToFlag(AlvrInput.ApplicationMenuClick),
+            // 11 (R System Click)
+            ToFlag(AlvrInput.SystemClick)
+        };
+
         private struct Context
         {
+            public ulong[] ButtonMap;
             public bool InputEnabled;
             public bool Input2DEnabled;
             public bool ButtonPanelEnabled;
@@ -84,12 +146,14 @@ namespace Alvr
             public HandControllerState CtrlState;
 
             public void Reset(
+                ulong[] buttonMap,
                 SafeAngle anglePalmFacingFront,
                 float sigmaWForAngle, float sigmaVForAngle,
                 float sigmaWForPosition, float sigmaVForPosition
             )
             {
                 anglePalmFacingFront.Reset();
+                ButtonMap = buttonMap;
                 InputEnabled = false;
                 Input2DEnabled = false;
                 ButtonPanelEnabled = false;
@@ -118,7 +182,7 @@ namespace Alvr
         private Material _rTriggerMaterial;
 
         private bool _buttonPanelEnabled;
-        private int _activeButtonId;
+        private uint _activeButtonFlags;
 
         private Context _lContext;
         private Context _rContext;
@@ -173,18 +237,20 @@ namespace Alvr
         private void OnEnable()
         {
             _lContext.Reset(
+                LButtonMap,
                 anglePalmFacingFront,
                 sigmaWForAngle, sigmaVForAngle,
                 sigmaWForPosition, sigmaVForPosition
             );
             _rContext.Reset(
+                RButtonMap,
                 anglePalmFacingFront.Mirror(),
                 sigmaWForAngle, sigmaVForAngle,
                 sigmaWForPosition, sigmaVForPosition
             );
             _angleRangeForTrigger = maxAngleForTrigger - thresholdAngleForTrigger;
             _angleRangeForGrip = maxAngleForGrip - thresholdAngleForGrip;
-            _activeButtonId = -1;
+            _activeButtonFlags = 0;
         }
 
         private void Start()
@@ -223,7 +289,7 @@ namespace Alvr
             context.CtrlState.Grip = 0f;
             context.CtrlState.Input2DPosition.x = 0f;
             context.CtrlState.Input2DPosition.y = 0f;
-            context.CtrlState.Buttons = MapButton(_activeButtonId);
+            context.CtrlState.Buttons = MapButton(_activeButtonFlags, context.ButtonMap);
 
             if (!state.isTracked) return;
 
@@ -231,7 +297,7 @@ namespace Alvr
             var inverseHeadRotation = Quaternion.Inverse(headPose.rotation.ToAlvr());
 
             var palm = state.GetJointPose(HandJointID.Palm);
-            var yDistance = Mathf.Abs(headPose.position.y -  palm.position.y);
+            var yDistance = Mathf.Abs(headPose.position.y - palm.position.y);
 
             var palmIsFacingBack = false;
             var palmIsFacingFront = false;
@@ -385,12 +451,12 @@ namespace Alvr
 
         public void PressButton(int buttonId)
         {
-            _activeButtonId = buttonId;
+            _activeButtonFlags |= 1u << buttonId;
         }
 
-        public void ReleaseButton()
+        public void ReleaseButton(int buttonId)
         {
-            _activeButtonId = -1;
+            _activeButtonFlags &= ~(1u << buttonId);
         }
 
         public void SetButtonPanelEnabled(bool isEnabled)
@@ -398,28 +464,20 @@ namespace Alvr
             _buttonPanelEnabled = isEnabled;
         }
 
-        private static ulong MapButton(int buttonId)
+        private static ulong MapButton(uint activeButtonFlags, IEnumerable<ulong> buttonMap)
         {
-            return buttonId switch
+            ulong flags = 0;
+            foreach (var f in buttonMap)
             {
-                0 => ToFlag(AlvrInput.JoystickTouch)
-                     | ToFlag(AlvrInput.JoystickClick)
-                     | ToFlag(AlvrInput.JoystickLeftClick)
-                     | ToFlag(AlvrInput.TrackpadTouch)
-                     | ToFlag(AlvrInput.TrackpadClick),
-                1 => ToFlag(AlvrInput.XTouch) | ToFlag(AlvrInput.XClick),
-                2 => ToFlag(AlvrInput.YTouch) | ToFlag(AlvrInput.YClick),
-                3 => ToFlag(AlvrInput.ApplicationMenuClick),
-                4 => ToFlag(AlvrInput.SystemClick),
-                5 => ToFlag(AlvrInput.ATouch) | ToFlag(AlvrInput.AClick),
-                6 => ToFlag(AlvrInput.BTouch) | ToFlag(AlvrInput.BClick),
-                7 => ToFlag(AlvrInput.JoystickTouch)
-                     | ToFlag(AlvrInput.JoystickClick)
-                     | ToFlag(AlvrInput.JoystickRightClick)
-                     | ToFlag(AlvrInput.TrackpadTouch)
-                     | ToFlag(AlvrInput.TrackpadClick),
-                _ => 0
-            };
+                if ((activeButtonFlags & 1u) != 0)
+                {
+                    flags |= f;
+                }
+
+                activeButtonFlags >>= 1;
+            }
+
+            return flags;
         }
 
         private static ulong ToFlag(AlvrInput input)

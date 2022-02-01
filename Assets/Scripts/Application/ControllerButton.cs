@@ -20,7 +20,7 @@ namespace Application
 
         public void OnReleased()
         {
-            _controllerBridge.OnReleased();
+            _controllerBridge.OnReleased(buttonId);
         }
     }
 }

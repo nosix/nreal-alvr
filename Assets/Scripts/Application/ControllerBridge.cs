@@ -12,9 +12,9 @@ namespace Application
             handTracking.PressButton(buttonId);
         }
 
-        public void OnReleased()
+        public void OnReleased(int buttonId)
         {
-            handTracking.ReleaseButton();
+            handTracking.ReleaseButton(buttonId);
         }
 
         public void OnChanged(int switchId, bool isOn)
