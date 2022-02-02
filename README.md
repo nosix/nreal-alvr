@@ -23,3 +23,9 @@
       ```
   - dependency is written in Assets/Plugins/Android/mainTemplate.gradle
   - Please do not contact the official ALVR for this library. Currently, I am adding it personally.
+
+# External Resource
+
+- Icon
+  - [ICOOON MONO](https://icooon-mono.com/?lang=en)
+    - [No redistribution](https://icooon-mono.com/license/)
