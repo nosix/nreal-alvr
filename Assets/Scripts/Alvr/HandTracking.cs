@@ -17,7 +17,7 @@ namespace Alvr
         public ulong Buttons;
     }
 
-    public class HandTracking : MonoBehaviour
+    public class HandTracking : MonoBehaviour, ITrackingSettingsTarget
     {
         [SerializeField] private SafeAngle anglePalmFacingFront = new SafeAngle
         {
@@ -26,7 +26,7 @@ namespace Alvr
         };
 
         [SerializeField] private float thresholdAnglePalmFacingBack = 60f;
-        [SerializeField] private float thresholdDistanceEnableTracking = 0.3f;
+        [SerializeField] private float thresholdYDistanceEnableTracking = 0.3f;
         [SerializeField] private float minDistance2DInput = 0.02f;
         [SerializeField] private float maxDistance2DInput = 0.1f;
         [SerializeField] private float thresholdAngleBendThumb = 30f;
@@ -314,7 +314,7 @@ namespace Alvr
             var palmIsFacingBack = false;
             var palmIsFacingFront = false;
 
-            if (yDistance < thresholdDistanceEnableTracking)
+            if (yDistance < thresholdYDistanceEnableTracking)
             {
                 var palmRotation = inverseHeadRotation * palm.rotation.ToAlvr();
                 var palmAngleWithBack = Quaternion.Angle(RotateBackFacing, palmRotation);
@@ -489,6 +489,44 @@ namespace Alvr
         public void SetAdditionalPalmRotationZ(float value)
         {
             _additionalPalmRotation.z = value;
+        }
+
+        public void ReadSettings(TrackingSettings settings)
+        {
+            settings.MinAnglePalmFacingFront = anglePalmFacingFront.min;
+            settings.MaxAnglePalmFacingFront = anglePalmFacingFront.max;
+            settings.ThresholdAnglePalmFacingBack = thresholdAnglePalmFacingBack;
+            settings.ThresholdYDistanceEnableTracking = thresholdYDistanceEnableTracking;
+            settings.MinDistance2DInput = minDistance2DInput;
+            settings.MaxDistance2DInput = maxDistance2DInput;
+            settings.ThresholdAngleBendThumb = thresholdAngleBendThumb;
+            settings.MaxAngleForTrigger = maxAngleForTrigger;
+            settings.ThresholdAngleForTrigger = thresholdAngleForTrigger;
+            settings.MaxAngleForGrip = maxAngleForGrip;
+            settings.ThresholdAngleForGrip = thresholdAngleForGrip;
+            settings.SigmaWForAngle = sigmaWForAngle;
+            settings.SigmaVForAngle = sigmaVForAngle;
+            settings.SigmaWForPosition = sigmaWForPosition;
+            settings.SigmaVForPosition = sigmaVForPosition;
+        }
+
+        public void ApplySettings(TrackingSettings settings)
+        {
+            anglePalmFacingFront.min = settings.MinAnglePalmFacingFront;
+            anglePalmFacingFront.max = settings.MaxAnglePalmFacingFront;
+            thresholdAnglePalmFacingBack = settings.ThresholdAnglePalmFacingBack;
+            thresholdYDistanceEnableTracking = settings.ThresholdYDistanceEnableTracking;
+            minDistance2DInput = settings.MinDistance2DInput;
+            maxDistance2DInput = settings.MaxDistance2DInput;
+            thresholdAngleBendThumb = settings.ThresholdAngleBendThumb;
+            maxAngleForTrigger = settings.MaxAngleForTrigger;
+            thresholdAngleForTrigger = settings.ThresholdAngleForTrigger;
+            maxAngleForGrip = settings.MaxAngleForGrip;
+            thresholdAngleForGrip = settings.ThresholdAngleForGrip;
+            sigmaWForAngle = settings.SigmaWForAngle;
+            sigmaVForAngle = settings.SigmaVForAngle;
+            sigmaWForPosition = settings.SigmaWForPosition;
+            sigmaVForPosition = settings.SigmaVForPosition;
         }
 
         private Quaternion ConvertHandAxis(Quaternion rotation, HandCoefficient c)

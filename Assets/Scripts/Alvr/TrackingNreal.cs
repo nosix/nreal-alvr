@@ -4,10 +4,11 @@ using UnityEngine.Events;
 
 namespace Alvr
 {
-    public class TrackingNreal : MonoBehaviour
+    public class TrackingNreal : MonoBehaviour, ITrackingSettingsTarget
     {
         [SerializeField] private AlvrClient alvrClient;
         [SerializeField] private float eyeHeight = 0.66f;
+        [SerializeField] private float diagonalFovAngle = 52f;
         [SerializeField] private float fovRatioInner = 45f;
         [SerializeField] private float fovRatioOuter = 49f;
         [SerializeField] private float fovRatioUpper = 50f;
@@ -18,15 +19,13 @@ namespace Alvr
         [SerializeField] private HandTracking handTracking;
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
-        private const float DiagonalFovAngle = 52f;
-
         private readonly Tracking _tracking = new Tracking();
         private readonly HeadPoseHistory _headPoseHistory = new HeadPoseHistory();
 
         private Vector3 HandUpwardMovement => Vector3.up.ToAlvr() * (eyeHeight + handUpwardMovement);
         private Vector3 HandForwardMovement => Vector3.forward.ToAlvr() * handForwardMovement;
 
-        private CRect GetLEyeFov(float diagonalFovAngle, float width, float height)
+        private CRect GetLEyeFov(float width, float height)
         {
             var screenDiagonalAngleFromAdjacent = Mathf.Atan(height / width);
             var screenWidthAngle = Mathf.Cos(screenDiagonalAngleFromAdjacent) * diagonalFovAngle;
@@ -61,7 +60,7 @@ namespace Alvr
 
         private Tracking GetTracking(long frameIndex)
         {
-            var lEyeFov = GetLEyeFov(DiagonalFovAngle, alvrClient.EyeWidth, alvrClient.EyeHeight);
+            var lEyeFov = GetLEyeFov(alvrClient.EyeWidth, alvrClient.EyeHeight);
             var rEyeFov = GetREyeFov(lEyeFov);
             var headPose = GetHeadPose();
             _tracking.ipd = 0.068606f;
@@ -125,6 +124,32 @@ namespace Alvr
         {
             DeviceAdapter.GetTrackingDelegate -= GetTracking;
             DeviceAdapter.OnRenderedDelegate -= OnRendered;
+        }
+
+        public void ReadSettings(TrackingSettings settings)
+        {
+            settings.EyeHeight = eyeHeight;
+            settings.DiagonalFovAngle = diagonalFovAngle;
+            settings.FovRatioInner = fovRatioInner;
+            settings.FovRatioOuter = fovRatioOuter;
+            settings.FovRatioUpper = fovRatioUpper;
+            settings.FovRatioLower = fovRatioLower;
+            settings.ZoomRatio = zoomRatio;
+            settings.HandUpwardMovement = handUpwardMovement;
+            settings.HandForwardMovement = handForwardMovement;
+        }
+
+        public void ApplySettings(TrackingSettings settings)
+        {
+            eyeHeight = settings.EyeHeight;
+            diagonalFovAngle = settings.DiagonalFovAngle;
+            fovRatioInner = settings.FovRatioInner;
+            fovRatioOuter = settings.FovRatioOuter;
+            fovRatioUpper = settings.FovRatioUpper;
+            fovRatioLower = settings.FovRatioLower;
+            zoomRatio = settings.ZoomRatio;
+            handUpwardMovement = settings.HandUpwardMovement;
+            handForwardMovement = settings.HandForwardMovement;
         }
     }
 }
