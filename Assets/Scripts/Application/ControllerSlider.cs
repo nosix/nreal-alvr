@@ -20,6 +20,11 @@ namespace Application
             _defaultValue = _slider.value;
         }
 
+        private void OnEnable()
+        {
+            OnChanged();
+        }
+
         public void OnChanged()
         {
             _controllerBridge.OnChanged(sliderId, _slider.value);
