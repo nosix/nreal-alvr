@@ -7,6 +7,7 @@ namespace Alvr
     public class TrackingNreal : MonoBehaviour, ITrackingSettingsTarget
     {
         [SerializeField] private AlvrClient alvrClient;
+        [SerializeField] private float spaceScale = 0.5f;
         [SerializeField] private float eyeHeight = 0.66f;
         [SerializeField] private float diagonalFovAngle = 52f;
         [SerializeField] private float fovRatioInner = 45f;
@@ -14,8 +15,8 @@ namespace Alvr
         [SerializeField] private float fovRatioUpper = 50f;
         [SerializeField] private float fovRatioLower = 48f;
         [SerializeField] private float zoomRatio = 1f;
-        [SerializeField] private float handUpwardMovement = 0.2f;
-        [SerializeField] private float handForwardMovement = 0.5f;
+        [SerializeField] private float handUpwardMovement = 0.1f;
+        [SerializeField] private float handForwardMovement = 0.1f;
         [SerializeField] private HandTracking handTracking;
         [SerializeField] private UnityEvent<Pose, Pose> onRendered;
 
@@ -70,9 +71,9 @@ namespace Alvr
             _tracking.rEyeFov = rEyeFov;
             _tracking.headPosePosition = new CVector3
             {
-                x = headPose.position.x,
-                y = headPose.position.y + eyeHeight,
-                z = headPose.position.z
+                x = headPose.position.x / spaceScale,
+                y = (headPose.position.y + eyeHeight) / spaceScale,
+                z = headPose.position.z / spaceScale
             };
             _tracking.headPoseOrientation = headPose.rotation.ToCStruct();
             if (handTracking != null)
@@ -80,7 +81,6 @@ namespace Alvr
                 handTracking.UpdateHandState();
                 var lCtrlState = handTracking.LCtrlState;
                 var rCtrlState = handTracking.RCtrlState;
-                var handOrigin = headPose.position + HandUpwardMovement + headPose.rotation * HandForwardMovement;
                 _tracking.lCtrl = new Controller
                 {
                     buttons = lCtrlState.Buttons,
@@ -89,7 +89,7 @@ namespace Alvr
                     triggerValue = lCtrlState.Trigger,
                     gripValue = lCtrlState.Grip,
                     orientation = lCtrlState.Orientation.ToCStruct(),
-                    position = (lCtrlState.Position + handOrigin).ToCStruct()
+                    position = AdjustHandPosition(lCtrlState.Position, headPose).ToCStruct()
                 };
                 _tracking.rCtrl = new Controller
                 {
@@ -99,12 +99,21 @@ namespace Alvr
                     triggerValue = rCtrlState.Trigger,
                     gripValue = rCtrlState.Grip,
                     orientation = rCtrlState.Orientation.ToCStruct(),
-                    position = (rCtrlState.Position + handOrigin).ToCStruct()
+                    position = AdjustHandPosition(rCtrlState.Position, headPose).ToCStruct()
                 };
             }
 
             _headPoseHistory.Add(frameIndex, headPose);
             return _tracking;
+        }
+
+        private Vector3 AdjustHandPosition(Vector3 handPosition, Pose headPose)
+        {
+            var relativeHandPosition = handPosition + HandUpwardMovement - headPose.position;
+            var sightDirectionPosition =
+                Quaternion.Inverse(headPose.rotation) * relativeHandPosition + HandForwardMovement;
+            var scale = new Vector3(1f, 1f / spaceScale, 1f / spaceScale);
+            return headPose.rotation * Vector3.Scale(sightDirectionPosition, scale) + headPose.position;
         }
 
         private static Pose GetHeadPose()
@@ -128,6 +137,7 @@ namespace Alvr
 
         public void ReadSettings(TrackingSettings settings)
         {
+            settings.SpaceScale = spaceScale;
             settings.EyeHeight = eyeHeight;
             settings.DiagonalFovAngle = diagonalFovAngle;
             settings.FovRatioInner = fovRatioInner;
@@ -141,6 +151,7 @@ namespace Alvr
 
         public void ApplySettings(TrackingSettings settings)
         {
+            spaceScale = settings.SpaceScale;
             eyeHeight = settings.EyeHeight;
             diagonalFovAngle = settings.DiagonalFovAngle;
             fovRatioInner = settings.FovRatioInner;

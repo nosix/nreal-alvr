@@ -4137,6 +4137,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alvrClient: {fileID: 644375757}
+  spaceScale: 0.5
   eyeHeight: 0.66
   diagonalFovAngle: 52
   fovRatioInner: 45
@@ -4144,8 +4145,8 @@ MonoBehaviour:
   fovRatioUpper: 50
   fovRatioLower: 48
   zoomRatio: 1
-  handUpwardMovement: 0.2
-  handForwardMovement: 0.5
+  handUpwardMovement: 0.1
+  handForwardMovement: 0.1
   handTracking: {fileID: 739769388}
   onRendered:
     m_PersistentCalls:
