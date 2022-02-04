@@ -15,22 +15,26 @@ Nreal Light's hand tracking is often falsely detected when five fingers cannot b
 Therefore, the input is valid only when the hand is facing in a direction that makes it easy to identify the five fingers.
 Input is valid only when the hand is facing the angle between MinAnglePalmFacingFront and MaxAnglePalmFacingFront.
 
-| Hand                                                                               | Controller                               |
-|------------------------------------------------------------------------------------|------------------------------------------|
-| position                                                                           | position                                 |
-| orientation                                                                        | orientation                              |
-| angle between index middle and palm [ThresholdAngleForTrigger..MaxAngleForTrigger] | trigger value [0..1]                     |
-| the angle exceeded ThresholdAngleForTrigger                                        | trigger touch                            |
-| The angle has reached MaxAngleForTrigger                                           | trigger click                            |
-| angle between middle middle and palm [ThresholdAngleForGrip..MaxAngleForGrip]      | grip value [0..1]                        |
-| the angle exceeded ThresholdAngleForGrip                                           | grip touch                               |
-| the angle has reached MaxAngleForGrip                                              | grip click                               |
-| move up / down / left / right with the back of your hand facing forward            | thumbstick move up / down / left / right |
-| angle between thumb metacarpal and thumb top exceeded thresholdAngleBendThumb      | thumbstick touch                         |
+The app converts hand movements into controller input as follows:
+
+| Hand                                                                                                              | Controller                                      |
+|-------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
+| position                                                                                                          | position                                        |
+| orientation                                                                                                       | orientation                                     |
+| angle between index middle and palm [ThresholdAngleForTrigger..MaxAngleForTrigger]                                | trigger value [0..1]                            |
+| the angle exceeded ThresholdAngleForTrigger                                                                       | trigger touch                                   |
+| The angle has reached MaxAngleForTrigger                                                                          | trigger click                                   |
+| angle between middle middle and palm [ThresholdAngleForGrip..MaxAngleForGrip]                                     | grip value [0..1]                               |
+| the angle exceeded ThresholdAngleForGrip                                                                          | grip touch                                      |
+| the angle has reached MaxAngleForGrip                                                                             | grip click                                      |
+| move up / down / left / right with the back of your hand facing forward [MinDistance2DInput..MaxDistance2DInput]  | thumbstick move up / down / left / right [0..1] |
+| angle between thumb metacarpal and thumb top exceeded thresholdAngleBendThumb                                     | thumbstick touch                                |
 
 When the Button Panel on the phone controller is on, the buttons appear in space when you turn the back of your hand to the front.
 
 ## Phone Controller
+
+The app converts the phone controller input to the controller input as follows:
 
 | Phone Controller                   | Controller                    |
 |------------------------------------|-------------------------------|
@@ -58,7 +62,7 @@ By turning off Cache Values, the cached values will be the current values.
 
 ## Gear Icon Button
 
-You can open the setting screen from the gear icon.
+You can open the setting dialog from the gear icon.
 If you rewrite the value of the text field and press the submit button, the setting will be changed.
 If there is a problem with the input content, the content of the problem will be displayed in the Message line of the text field.
 
