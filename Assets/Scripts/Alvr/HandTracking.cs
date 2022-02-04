@@ -493,8 +493,10 @@ namespace Alvr
 
         public void ReadSettings(TrackingSettings settings)
         {
-            settings.MinAnglePalmFacingFront = anglePalmFacingFront.min;
-            settings.MaxAnglePalmFacingFront = anglePalmFacingFront.max;
+            // The origin of TrackingSettings is 0, but the origin of HandTracking is 360.
+            var origin = new Vector3(360f, 360f, 360f);
+            settings.MinAnglePalmFacingFront = anglePalmFacingFront.min - origin;
+            settings.MaxAnglePalmFacingFront = anglePalmFacingFront.max - origin;
             settings.ThresholdAnglePalmFacingBack = thresholdAnglePalmFacingBack;
             settings.ThresholdYDistanceEnableTracking = thresholdYDistanceEnableTracking;
             settings.MinDistance2DInput = minDistance2DInput;
@@ -512,8 +514,10 @@ namespace Alvr
 
         public void ApplySettings(TrackingSettings settings)
         {
-            anglePalmFacingFront.min = settings.MinAnglePalmFacingFront;
-            anglePalmFacingFront.max = settings.MaxAnglePalmFacingFront;
+            // The origin of TrackingSettings is 0, but the origin of HandTracking is 360.
+            var origin = new Vector3(360f, 360f, 360f);
+            anglePalmFacingFront.min = settings.MinAnglePalmFacingFront + origin;
+            anglePalmFacingFront.max = settings.MaxAnglePalmFacingFront + origin;
             thresholdAnglePalmFacingBack = settings.ThresholdAnglePalmFacingBack;
             thresholdYDistanceEnableTracking = settings.ThresholdYDistanceEnableTracking;
             minDistance2DInput = settings.MinDistance2DInput;

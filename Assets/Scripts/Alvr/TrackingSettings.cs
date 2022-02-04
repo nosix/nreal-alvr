@@ -27,11 +27,11 @@ namespace Alvr
         public float SpaceScale { get; set; }
         public float EyeHeight { get; set; }
         public float DiagonalFovAngle { get; set; }
+        public float ZoomRatio { get; set; }
         public float FovRatioInner { get; set; }
         public float FovRatioOuter { get; set; }
         public float FovRatioUpper { get; set; }
         public float FovRatioLower { get; set; }
-        public float ZoomRatio { get; set; }
         public float HandUpwardMovement { get; set; }
         public float HandForwardMovement { get; set; }
 
