@@ -9,6 +9,7 @@ namespace Alvr
 {
     public struct HandControllerState
     {
+        public bool Enabled;
         public Quaternion Orientation;
         public Vector3 Position;
         public Vector2 Input2DPosition;
@@ -297,13 +298,18 @@ namespace Alvr
 
         private void ScanHandState(HandState state, ref Context context)
         {
+            context.CtrlState.Enabled = true;
             context.CtrlState.Trigger = 0f;
             context.CtrlState.Grip = 0f;
             context.CtrlState.Input2DPosition.x = 0f;
             context.CtrlState.Input2DPosition.y = 0f;
             context.CtrlState.Buttons = MapButton(_activeButtonFlags, context.ButtonMap);
 
-            if (!state.isTracked) return;
+            if (!state.isTracked)
+            {
+                context.CtrlState.Enabled = false;
+                return;
+            }
 
             var headPose = NRFrame.HeadPose;
             var inverseHeadRotation = Quaternion.Inverse(headPose.rotation.ToAlvr());
@@ -321,6 +327,10 @@ namespace Alvr
                 context.PalmAngleWithBack.Next(palmAngleWithBack);
                 palmIsFacingBack = context.PalmAngleWithBack.Value < thresholdAnglePalmFacingBack;
                 palmIsFacingFront = context.AnglePalmFacingFront.Contains(palmRotation.eulerAngles);
+            }
+            else
+            {
+                context.CtrlState.Enabled = false;
             }
 
             // Debug.Log($"Palm {(int)(yDistance * 100)} {palmIsFacingFront} {palmIsFacingBack} {(int)context.PalmAngleWithBack.Value}");

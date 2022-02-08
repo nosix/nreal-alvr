@@ -64,9 +64,10 @@ namespace Alvr
             var lEyeFov = GetLEyeFov(alvrClient.EyeWidth, alvrClient.EyeHeight);
             var rEyeFov = GetREyeFov(lEyeFov);
             var headPose = GetHeadPose();
-            _tracking.ipd = 0.068606f;
-            _tracking.battery = 100;
-            _tracking.plugged = 1;
+            _tracking.ipd = 0.068606f; // TODO changeable
+            _tracking.battery = 100; // TODO use device value
+            _tracking.plugged = 1; // TODO use device value
+            _tracking.mounted = 1;
             _tracking.lEyeFov = lEyeFov;
             _tracking.rEyeFov = rEyeFov;
             _tracking.headPosePosition = new CVector3
@@ -83,6 +84,7 @@ namespace Alvr
                 var rCtrlState = handTracking.RCtrlState;
                 _tracking.lCtrl = new Controller
                 {
+                    enabled = (byte)(lCtrlState.Enabled ? 1 : 0),
                     buttons = lCtrlState.Buttons,
                     trackpadPositionX = lCtrlState.Input2DPosition.x,
                     trackpadPositionY = lCtrlState.Input2DPosition.y,
@@ -93,6 +95,7 @@ namespace Alvr
                 };
                 _tracking.rCtrl = new Controller
                 {
+                    enabled = (byte)(rCtrlState.Enabled ? 1 : 0),
                     buttons = rCtrlState.Buttons,
                     trackpadPositionX = rCtrlState.Input2DPosition.x,
                     trackpadPositionY = rCtrlState.Input2DPosition.y,

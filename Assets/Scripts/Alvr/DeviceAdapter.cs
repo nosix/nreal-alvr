@@ -26,6 +26,7 @@ namespace Alvr
 
         public byte battery;
         public byte plugged;
+        public byte mounted;
         public CRect lEyeFov = new CRect();
         public CRect rEyeFov = new CRect();
         public CQuaternion headPoseOrientation = new CQuaternion();
@@ -38,6 +39,7 @@ namespace Alvr
     [StructLayout(LayoutKind.Sequential)]
     public struct Controller
     {
+        public byte enabled;
         public ulong buttons;
         public float trackpadPositionX;
         public float trackpadPositionY;
