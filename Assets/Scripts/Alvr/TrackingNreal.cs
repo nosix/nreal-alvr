@@ -9,6 +9,7 @@ namespace Alvr
         [SerializeField] private AlvrClient alvrClient;
         [SerializeField] private float spaceScale = 0.5f;
         [SerializeField] private float eyeHeight = 0.66f;
+        [SerializeField] private float ipd = 0.068606f;
         [SerializeField] private float diagonalFovAngle = 52f;
         [SerializeField] private float fovRatioInner = 45f;
         [SerializeField] private float fovRatioOuter = 49f;
@@ -64,7 +65,7 @@ namespace Alvr
             var lEyeFov = GetLEyeFov(alvrClient.EyeWidth, alvrClient.EyeHeight);
             var rEyeFov = GetREyeFov(lEyeFov);
             var headPose = GetHeadPose();
-            _tracking.ipd = 0.068606f; // TODO changeable
+            _tracking.ipd = ipd;
             _tracking.battery = 100; // TODO use device value
             _tracking.plugged = 1; // TODO use device value
             _tracking.mounted = 1;
@@ -142,6 +143,7 @@ namespace Alvr
         {
             settings.SpaceScale = spaceScale;
             settings.EyeHeight = eyeHeight;
+            settings.Ipd = ipd;
             settings.DiagonalFovAngle = diagonalFovAngle;
             settings.FovRatioInner = fovRatioInner;
             settings.FovRatioOuter = fovRatioOuter;
@@ -156,6 +158,7 @@ namespace Alvr
         {
             spaceScale = settings.SpaceScale;
             eyeHeight = settings.EyeHeight;
+            ipd = settings.Ipd;
             diagonalFovAngle = settings.DiagonalFovAngle;
             fovRatioInner = settings.FovRatioInner;
             fovRatioOuter = settings.FovRatioOuter;

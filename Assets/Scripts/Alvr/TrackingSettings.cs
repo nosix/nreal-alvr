@@ -26,6 +26,7 @@ namespace Alvr
         // TrackingNreal settings
         public float SpaceScale { get; set; }
         public float EyeHeight { get; set; }
+        public float Ipd { get; set; }
         public float DiagonalFovAngle { get; set; }
         public float ZoomRatio { get; set; }
         public float FovRatioInner { get; set; }
