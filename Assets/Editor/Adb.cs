@@ -5,7 +5,7 @@ namespace Editor
 {
     public static class Adb
     {
-        private static string GetPath()
+        public static string GetPath()
         {
             var applicationRoot = Path.GetDirectoryName(EditorApplication.applicationPath);
             var adbCommand = Path.Combine(applicationRoot!, "PlaybackEngines/AndroidPlayer/SDK/platform-tools/adb");

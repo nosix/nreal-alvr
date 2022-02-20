@@ -141,5 +141,11 @@ namespace Editor
             ));
             Debug.Log(await result);
         }
+
+        [MenuItem("NRSDK/GetAdbPath", false, 1)]
+        private static void GetAdbPath()
+        {
+            Debug.Log(Adb.GetPath());
+        }
     }
 }
