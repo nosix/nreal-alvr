@@ -104,6 +104,12 @@ The following are the items that can be set.
 | SigmaWForPosition                | float     | 1E-05                  | Kalman filter sigma V for adjusting position values.                                                                                                                                             |
 | SigmaVForPosition                | float     | 0.0001                 | Kalman filter sigma W for adjusting position values. If W is increased, the sensor value will be treated as having a large error, and the sensor value will not be trusted.                      |
 
+# Troubleshooting
+
+## The image does not move following the movement of the head
+
+Close all running apps and restart Nreal Launcher.
+
 # Requirements for build
 
 - NRSDK 1.8.0
