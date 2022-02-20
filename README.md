@@ -21,18 +21,18 @@ Input is valid only when the hand is facing the angle between MinAnglePalmFacing
 
 The app converts hand movements into controller input as follows:
 
-| Hand                                                                                                              | Controller                                      |
-|-------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
-| position                                                                                                          | position                                        |
-| orientation                                                                                                       | orientation                                     |
-| angle between index middle and palm [ThresholdAngleForTrigger..MaxAngleForTrigger]                                | trigger value [0..1]                            |
-| the angle exceeded ThresholdAngleForTrigger                                                                       | trigger touch                                   |
-| The angle has reached MaxAngleForTrigger                                                                          | trigger click                                   |
-| angle between middle middle and palm [ThresholdAngleForGrip..MaxAngleForGrip]                                     | grip value [0..1]                               |
-| the angle exceeded ThresholdAngleForGrip                                                                          | grip touch                                      |
-| the angle has reached MaxAngleForGrip                                                                             | grip click                                      |
-| move up / down / left / right with the back of your hand facing forward [MinDistance2DInput..MaxDistance2DInput]  | thumbstick move up / down / left / right [0..1] |
-| angle between thumb metacarpal and thumb top exceeded thresholdAngleBendThumb                                     | thumbstick touch                                |
+| Hand                                                                                                             | Controller                                      |
+|------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
+| position                                                                                                         | position                                        |
+| orientation                                                                                                      | orientation                                     |
+| angle between index middle and palm [ThresholdAngleForTrigger..MaxAngleForTrigger]                               | trigger value [0..1]                            |
+| the angle exceeded ThresholdAngleForTrigger                                                                      | trigger touch                                   |
+| The angle has reached MaxAngleForTrigger                                                                         | trigger click                                   |
+| angle between middle middle and palm [ThresholdAngleForGrip..MaxAngleForGrip]                                    | grip value [0..1]                               |
+| the angle exceeded ThresholdAngleForGrip                                                                         | grip touch                                      |
+| the angle has reached MaxAngleForGrip                                                                            | grip click                                      |
+| move up / down / left / right with the back of your hand facing forward [MinDistance2DInput..MaxDistance2DInput] | thumbstick move up / down / left / right [0..1] |
+| angle between thumb metacarpal and thumb top exceeded ThresholdAngleBendThumb                                    | thumbstick touch                                |
 
 When the Button Panel on the phone controller is on, the buttons appear in space when you turn the back of your hand to the front.
 
@@ -97,8 +97,8 @@ The following are the items that can be set.
 | ThresholdAngleBendThumb          | float     | 30                     | The angle at which the thumbstick touch is detected. The unit is degrees. See Hand Tracking.                                                                                                     |
 | MaxAngleForTrigger               | float     | 120                    | Finger angle at maximum Trigger value. The unit is degrees. See Hand Tracking.                                                                                                                   |
 | ThresholdAngleForTrigger         | float     | 80                     | Finger angle at minimum Trigger value. The unit is degrees. See Hand Tracking.                                                                                                                   |
-| MaxAngleForGrip                  | float     | 120                    | Finger angle at maximum Trigger value. The unit is degrees. See Hand Tracking.                                                                                                                   |
-| ThresholdAngleForGrip            | float     | 80                     | Finger angle at minimum Trigger value. The unit is degrees. See Hand Tracking.                                                                                                                   |
+| MaxAngleForGrip                  | float     | 120                    | Finger angle at maximum Grip value. The unit is degrees. See Hand Tracking.                                                                                                                      |
+| ThresholdAngleForGrip            | float     | 80                     | Finger angle at minimum Grip value. The unit is degrees. See Hand Tracking.                                                                                                                      |
 | SigmaWForAngle                   | float     | 1                      | Kalman filter sigma V for adjusting angle values.                                                                                                                                                |
 | SigmaVForAngle                   | float     | 10                     | Kalman filter sigma W for adjusting angle values. If W is increased, the sensor value will be treated as having a large error, and the sensor value will not be trusted.                         |
 | SigmaWForPosition                | float     | 1E-05                  | Kalman filter sigma V for adjusting position values.                                                                                                                                             |
