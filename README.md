@@ -4,6 +4,10 @@
 
 - [ALVR v17.0.0](https://github.com/alvr-org/ALVR/releases/tag/v17.0.0)
 
+# Target device
+
+- [Computing Unit included in Dev Kit](https://developer.nreal.ai/dev-kit)
+
 # Controller
 
 This app uses hand tracking and phone controller for controller input.
