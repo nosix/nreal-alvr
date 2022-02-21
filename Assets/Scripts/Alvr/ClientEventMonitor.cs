@@ -17,17 +17,13 @@ namespace Alvr
         private void Awake()
         {
             _alvrClient = GetComponent<AlvrClient>();
-        }
-
-        private void Start()
-        {
             var eventSubject = new Subject<string>();
             eventSubject
                 .ObserveOnMainThread()
                 .Subscribe(eventJson =>
-            {
-                onEventOccured.Invoke(eventJson);
-            });
+                {
+                    onEventOccured.Invoke(eventJson);
+                });
             _eventObserver = new ClientEventObserver(eventSubject);
             _alvrClient.SetEventObserver(_eventObserver);
         }

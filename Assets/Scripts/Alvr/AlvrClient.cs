@@ -85,5 +85,10 @@ namespace Alvr
         {
             _androidPlugInInstance?.Call("setEventObserver", observer);
         }
+
+        public string GetHostName()
+        {
+            return _androidPlugInInstance?.Call<string>("getHostName");
+        }
     }
 }
