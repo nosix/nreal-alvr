@@ -49,13 +49,15 @@ namespace Alvr
             statusMessageText.text = errorType switch
             {
                 "NetworkUnreachable" => "The server is unreachable.",
-                "ClientUntrusted" => $"The client is not trusted.\nRegister '{alvrClient.GetHostName()}' with the server.",
+                "ClientUntrusted" => $"This client is not trusted.\nRegister '{alvrClient.GetHostName()}' with the server.",
                 "IncompatibleVersions" => $"The server version is not {AlvrVersion.MajorVersion}.x.x.",
                 "TimeoutSetUpStream" => "The stream could not be started.",
                 "ServerDisconnected" => "It have been disconnected from the server.",
                 "SystemError" => $"System Error: {cause}",
                 _ => statusMessageText.text
             };
+
+            gameObject.SetActive(true);
         }
     }
 }
